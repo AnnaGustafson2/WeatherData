@@ -3,10 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Visualizer</title>
+    <title>Air Quality</title>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+        #chart { width: 100%; height: auto; }
+        #chart .line { fill: none; stroke: #2a6f97; stroke-width: 2; }
+        #chart text { font-size: 12px; fill: #555; }
+        #chart .grid { stroke: #ddd; }
+    </style>
 </head>
 <body>
     <h1>Air Quality</h1>
+    <p id="status">Loading data…</p>
+    <label>Sensor <select id="sensor"></select></label>
+    <svg id="chart" viewBox="0 0 800 300" role="img" aria-label="Hourly PM2.5 for the selected sensor"></svg>
+ 
+    <script>
+    // Data exported from Tiger Cloud by export_data.py
+    let DATA;
+ 
+    fetch("data/air_quality.json")
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(d => {
+            DATA = d;
+            window.airData = d;   // handy for experimenting in the browser console
+            document.getElementById("status").textContent =
+                `${d.sensors.length} sensors, ${d.hourly.length.toLocaleString()} hourly readings. ` +
+                `Updated ${new Date(d.generated_at).toLocaleString()}.`;
+ 
+            // Only list sensors that have data
+            const withData = new Set(d.hourly.map(r => r.feed_id));
+            const sel = document.getElementById("sensor");
+            d.sensors.filter(s => withData.has(s.feed_id)).forEach(s => {
+                sel.add(new Option(s.name, s.feed_id));
+            });
+            sel.onchange = () => draw(+sel.value);
+            if (sel.options.length) draw(+sel.value);
+        })
+        .catch(e => {
+            document.getElementById("status").textContent =
+                "Couldn't load data/air_quality.json. Run export_data.py, and open this page " +
+                "through a local server (python -m http.server), not by double-clicking the file.";
+            console.error(e);
+        });
+ 
+    function draw(feedId) {
+        const rows = DATA.hourly.filter(r => r.feed_id === feedId && r.avg !== null);
+        const svg = document.getElementById("chart");
+        if (!rows.length) { svg.innerHTML = ""; return; }
+ 
+        const W = 800, H = 300, m = { l: 40, r: 10, t: 10, b: 25 };
+        const xs = rows.map(r => new Date(r.time).getTime());
+        const ys = rows.map(r => r.avg);
+        const x0 = Math.min(...xs), x1 = Math.max(...xs);
+        const y1 = Math.max(...ys, 12);
+        const X = t => m.l + (t - x0) / (x1 - x0 || 1) * (W - m.l - m.r);
+        const Y = v => H - m.b - v / y1 * (H - m.t - m.b);
+ 
+        const pts = rows.map((r, i) => `${X(xs[i]).toFixed(1)},${Y(r.avg).toFixed(1)}`).join(" ");
+        const ticks = [0, 0.5, 1].map(f => f * y1);
+        svg.innerHTML =
+            ticks.map(v => `<line class="grid" x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}"/>` +
+                           `<text x="${m.l - 6}" y="${Y(v) + 4}" text-anchor="end">${v.toFixed(0)}</text>`).join("") +
+            `<polyline class="line" points="${pts}"/>` +
+            `<text x="${m.l}" y="${H - 6}">${new Date(x0).toLocaleDateString()}</text>` +
+            `<text x="${W - m.r}" y="${H - 6}" text-anchor="end">${new Date(x1).toLocaleDateString()}</text>`;
+    }
+    </script>
 </body>
 </html>
