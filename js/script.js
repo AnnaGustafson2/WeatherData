@@ -11,6 +11,12 @@
     const bandFor = v => BANDS.find(b => v <= b.max);
     const HOUR = 3600 * 1000;
 
+    const saveFavoriteBtn = document.getElementById("saveFavorite");
+    const favoritesList = document.getElementById("favorites");
+    const FAVORITES_KEY = "airQualityFavoriteCities";
+
+    let selectedPlace = null;
+
     const statusEl = document.getElementById("status");
     const placeInput = document.getElementById("place");
     const suggest = document.getElementById("suggest");
@@ -44,6 +50,89 @@
 
     // Best matches first: label starts with the text, then a word starts with it, then anywhere.
     // Within the same tier, bigger cities come first. Old names (Bombay, Saigon…) match too.
+    
+    function getFavorites() {
+        try {
+            return JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
+        } catch (err) {
+            return [];
+        }
+    }
+
+    function saveFavorites(favorites) {
+        try {
+            localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+            return true;
+        } catch (err) {
+            setStatus("Couldn't save favorites in this browser.", true);
+            return false;
+        }
+    }
+
+    function isFavorite(p) {
+        return getFavorites().some(f =>
+            f.label === p.label && f.lat === p.lat && f.lon === p.lon
+        );
+    }
+
+    function updateSaveButton() {
+        if (!selectedPlace) {
+            saveFavoriteBtn.disabled = true;
+            saveFavoriteBtn.textContent = "☆ Save favorite";
+            return;
+        }
+
+        if (isFavorite(selectedPlace)) {
+            saveFavoriteBtn.disabled = true;
+            saveFavoriteBtn.textContent = "★ Already saved";
+        } else {
+            saveFavoriteBtn.disabled = false;
+            saveFavoriteBtn.textContent = "☆ Save favorite";
+        }
+    }
+
+    function renderFavorites() {
+        favoritesList.replaceChildren();
+
+        const favorites = getFavorites();
+
+        if (favorites.length === 0) {
+            const li = document.createElement("li");
+            li.textContent = "No favorite cities yet.";
+            favoritesList.append(li);
+            return;
+        }
+
+        for (const favorite of favorites) {
+            const li = document.createElement("li");
+
+            const cityBtn = document.createElement("button");
+            cityBtn.type = "button";
+            cityBtn.textContent = favorite.label;
+            cityBtn.onclick = () => choose(favorite);
+
+            const removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.textContent = "×";
+            removeBtn.setAttribute("aria-label", "Remove " + favorite.label);
+            removeBtn.onclick = () => {
+                const updated = getFavorites().filter(f =>
+                    !(f.label === favorite.label &&
+                    f.lat === favorite.lat &&
+                    f.lon === favorite.lon)
+                );
+
+                if (saveFavorites(updated)) {
+                    renderFavorites();
+                    updateSaveButton();
+                }
+            };
+
+            li.append(cityBtn, removeBtn);
+            favoritesList.append(li);
+        }
+    }
+
     function search(text) {
         const q = norm(text.trim());
         if (!q) return [];
@@ -90,16 +179,43 @@
     }
 
     function choose(p) {
+        selectedPlace = p;
+        updateSaveButton();
+
         placeInput.value = p.label;
         suggest.hidden = true;
         placeInput.setAttribute("aria-expanded", "false");
-        const dLat = 0.15, dLon = 0.15 / Math.cos(p.lat * Math.PI / 180);   // about 20 miles across
+        const dLat = 0.15, dLon = 0.15 / Math.cos(p.lat * Math.PI / 180);
         const s = p.lat - dLat, n = p.lat + dLat, w = p.lon - dLon, e = p.lon + dLon;
         map.fitBounds([[s, w], [n, e]]);
         loadArea(s, w, n, e, p.label);
     }
 
-    placeInput.addEventListener("input", render);
+
+    saveFavoriteBtn.onclick = () => {
+        if (!selectedPlace || isFavorite(selectedPlace)) return;
+
+        const favorites = getFavorites();
+        favorites.push({
+            label: selectedPlace.label,
+            lat: selectedPlace.lat,
+            lon: selectedPlace.lon
+        });
+
+        if (saveFavorites(favorites)) {
+            renderFavorites();
+            updateSaveButton();
+            setStatus(selectedPlace.label + " saved to favorites.");
+        }
+    };
+
+    renderFavorites();
+
+    placeInput.addEventListener("input", () => {
+        selectedPlace = null;
+        updateSaveButton();
+        render();
+    });
     placeInput.addEventListener("focus", () => { if (placeInput.value.trim()) render(); });
     placeInput.addEventListener("blur", () => { suggest.hidden = true; });
     placeInput.addEventListener("keydown", ev => {
