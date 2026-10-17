@@ -283,6 +283,9 @@ def regions_file():
 def css(name):
     return send_from_directory(os.path.join(HERE, "css"), name)
 
+@app.get("/js/<path:name>")
+def js(name):
+    return send_from_directory(os.path.join(HERE, "js"), name)
 
 if __name__ == "__main__":
     setup_db()
