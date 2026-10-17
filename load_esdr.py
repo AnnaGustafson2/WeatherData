@@ -118,6 +118,15 @@ def main():
 
     print(f"Loaded {n:,} readings.")
 
+    # 5) Update the continuous aggregates ("cheat sheets"), if they exist.
+    #    CALL refresh_... can't run inside a transaction, hence autocommit.
+    with psycopg.connect(os.environ["DATABASE_URL"], autocommit=True) as conn:
+        for view in ("daily_readings", "hourly_readings"):
+            exists = conn.execute("SELECT to_regclass(%s)", (view,)).fetchone()[0]
+            if exists:
+                conn.execute(f"CALL refresh_continuous_aggregate('{view}', NULL, NULL)")
+                print(f"Refreshed {view}.")
+
 
 if __name__ == "__main__":
     main()
