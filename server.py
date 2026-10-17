@@ -45,10 +45,94 @@ def db():
     return psycopg.connect(os.environ["DATABASE_URL"])
 
 
+# One-time database setup. Every step is safe to repeat. They run one at a time
+# (outside a transaction, which Tiger Data requires for aggregates) and a failing
+# step only prints a warning, so the server still starts.
+SETUP_STEPS = [
+    # Smaller chunks (1 day) so data becomes old enough to compress sooner. New chunks only.
+    "SELECT set_chunk_time_interval('readings', INTERVAL '1 day')",
+    # Columnstore (Tiger's compression): group by the columns we filter on.
+    """ALTER TABLE readings SET (timescaledb.enable_columnstore = true,
+                                timescaledb.segmentby = 'feed_id, channel',
+                                timescaledb.orderby = 'time DESC')""",
+    "CALL add_columnstore_policy('readings', after => INTERVAL '2 days', if_not_exists => true)",
+    # Continuous aggregates: same as continuous_aggregates.sql.
+    """CREATE MATERIALIZED VIEW IF NOT EXISTS hourly_readings
+       WITH (timescaledb.continuous) AS
+       SELECT time_bucket('1 hour', time) AS hour, feed_id, channel,
+              avg(value) AS avg_value, min(value) AS min_value,
+              max(value) AS max_value, count(*) AS n_readings
+       FROM readings GROUP BY hour, feed_id, channel""",
+    """CREATE MATERIALIZED VIEW IF NOT EXISTS daily_readings
+       WITH (timescaledb.continuous) AS
+       SELECT time_bucket('1 day', time) AS day, feed_id, channel,
+              avg(value) AS avg_value, min(value) AS min_value,
+              max(value) AS max_value, count(*) AS n_readings
+       FROM readings GROUP BY day, feed_id, channel""",
+    # Real-time mode: results also include readings newer than the last refresh.
+    "ALTER MATERIALIZED VIEW hourly_readings SET (timescaledb.materialized_only = false)",
+    "ALTER MATERIALIZED VIEW daily_readings SET (timescaledb.materialized_only = false)",
+    """SELECT add_continuous_aggregate_policy('hourly_readings',
+           start_offset => INTERVAL '3 days', end_offset => INTERVAL '1 hour',
+           schedule_interval => INTERVAL '1 hour', if_not_exists => TRUE)""",
+    """SELECT add_continuous_aggregate_policy('daily_readings',
+           start_offset => INTERVAL '3 days', end_offset => INTERVAL '1 hour',
+           schedule_interval => INTERVAL '1 hour', if_not_exists => TRUE)""",
+]
+
+# What the page reads: pre-computed hourly rows, versus the raw table (for the timing comparison).
+AGG_QUERY = """SELECT hour, feed_id, avg_value FROM hourly_readings
+               WHERE channel = %s AND feed_id = ANY(%s) AND hour >= to_timestamp(%s)
+               ORDER BY hour, feed_id"""
+RAW_QUERY = """SELECT time_bucket('1 hour', time) AS h, feed_id, avg(value) FROM readings
+               WHERE channel = %s AND feed_id = ANY(%s) AND time >= to_timestamp(%s)
+               GROUP BY h, feed_id ORDER BY h, feed_id"""
+COUNT_QUERY = """SELECT count(*) FROM readings
+                 WHERE channel = %s AND feed_id = ANY(%s) AND time >= to_timestamp(%s)"""
+
+
 def setup_db():
     with db() as conn:
         conn.execute(SCHEMA)
         conn.execute("ALTER TABLE sensors ADD COLUMN IF NOT EXISTS loaded_at TIMESTAMPTZ")
+    with psycopg.connect(os.environ["DATABASE_URL"], autocommit=True) as conn:
+        for sql in SETUP_STEPS:
+            try:
+                conn.execute(sql)
+            except Exception as exc:
+                print(f"setup step skipped ({sql.split(chr(10))[0][:60]}...): {exc}")
+        convert_old_chunks(conn)
+
+
+def convert_old_chunks(conn):
+    """Compress existing chunks older than 2 days now, instead of waiting for the policy job."""
+    try:
+        chunks = [r[0] for r in conn.execute(
+            "SELECT c::text FROM show_chunks('readings', older_than => INTERVAL '2 days') AS c").fetchall()]
+    except Exception as exc:
+        print(f"could not list chunks: {exc}")
+        return
+    done = 0
+    for c in chunks:
+        try:
+            conn.execute("CALL convert_to_columnstore(%s::regclass)", (c,))
+            done += 1
+        except Exception as exc:
+            print(f"  could not convert {c}: {exc}")
+    print(f"columnstore: converted {done} of {len(chunks)} older chunks")
+
+
+def refresh_aggregates(from_ts, to_ts):
+    """Rebuild the aggregates for the window we just reloaded (can't run inside a transaction)."""
+    try:
+        with psycopg.connect(os.environ["DATABASE_URL"], autocommit=True) as conn:
+            for view in ("hourly_readings", "daily_readings"):
+                conn.execute(
+                    f"CALL refresh_continuous_aggregate('{view}', "
+                    "to_timestamp(%s)::timestamptz, to_timestamp(%s)::timestamptz)",
+                    (from_ts - 86400, to_ts + 3600))
+    except Exception as exc:
+        app.logger.warning("aggregate refresh failed: %s", exc)
 
 
 def load_feeds(conn, feeds, from_ts, to_ts):
@@ -113,6 +197,7 @@ def region():
         feeds = found[:MAX_SENSORS]
         ids = [f["id"] for f in feeds]
 
+        t_load = time.perf_counter()
         with db() as conn:
             fresh = {r[0] for r in conn.execute(
                 """SELECT feed_id FROM sensors WHERE feed_id = ANY(%s)
@@ -122,16 +207,25 @@ def region():
             if stale:
                 with load_lock:
                     load_feeds(conn, stale, from_ts, to_ts)
+        if stale:
+            refresh_aggregates(from_ts, to_ts)      # keep the continuous aggregates current
+        load_secs = round(time.perf_counter() - t_load, 1)
 
+        with db() as conn:
             sensors = conn.execute(
                 "SELECT feed_id, name, latitude, longitude FROM sensors "
                 "WHERE feed_id = ANY(%s) ORDER BY name", (ids,)).fetchall()
-            hourly = conn.execute(
-                """SELECT time_bucket('1 hour', time) AS h, feed_id, avg(value)
-                   FROM readings
-                   WHERE channel = %s AND feed_id = ANY(%s) AND time >= to_timestamp(%s)
-                   GROUP BY h, feed_id ORDER BY h, feed_id""",
-                (CHANNEL, ids, from_ts)).fetchall()
+
+            t0 = time.perf_counter()
+            hourly = conn.execute(AGG_QUERY, (CHANNEL, ids, from_ts)).fetchall()
+            agg_ms = round((time.perf_counter() - t0) * 1000, 1)
+
+            raw_ms = None                           # same answer from the raw table, for comparison
+            if request.args.get("compare", "1") == "1":
+                t0 = time.perf_counter()
+                conn.execute(RAW_QUERY, (CHANNEL, ids, from_ts)).fetchall()
+                raw_ms = round((time.perf_counter() - t0) * 1000, 1)
+            raw_rows = conn.execute(COUNT_QUERY, (CHANNEL, ids, from_ts)).fetchone()[0]
     except Exception as exc:
         app.logger.exception("region request failed")
         return jsonify(error=f"Server error: {exc}"), 500
@@ -144,6 +238,34 @@ def region():
                  for f, nm, la, lo in sensors],
         hourly=[{"time": h.strftime("%Y-%m-%dT%H:%M:%SZ"), "feed_id": f, "avg": round(v, 1)}
                 for h, f, v in hourly if v is not None],
+        perf=dict(agg_ms=agg_ms, raw_ms=raw_ms, raw_rows=raw_rows, hourly_rows=len(hourly),
+                  loaded_sensors=len(stale), load_secs=load_secs),
+    )
+
+
+@app.get("/api/storage")
+def storage():
+    """Table size and how much of it is in the columnstore (Tiger's compression)."""
+    def one(conn, sql):
+        try:
+            return conn.execute(sql).fetchone()
+        except Exception:
+            return None
+
+    with psycopg.connect(os.environ["DATABASE_URL"], autocommit=True) as conn:
+        stats = one(conn, """SELECT number_compressed_chunks, before_compression_total_bytes,
+                                    after_compression_total_bytes
+                             FROM hypertable_columnstore_stats('readings')""")
+        chunks = one(conn, "SELECT count(*) FROM show_chunks('readings')")
+        size = one(conn, "SELECT hypertable_size('readings')")
+        rows = one(conn, "SELECT approximate_row_count('readings')")
+    return jsonify(
+        rows=rows[0] if rows else None,
+        total_bytes=size[0] if size else None,
+        total_chunks=chunks[0] if chunks else None,
+        compressed_chunks=(stats[0] or 0) if stats else 0,
+        before_bytes=stats[1] if stats else None,
+        after_bytes=stats[2] if stats else None,
     )
 
 

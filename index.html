@@ -23,6 +23,7 @@
         #suggest li b { font-weight: 600; }
         #status { flex-basis: 100%; margin: 0; color: #555; font-size: 0.9rem; }
         #status.error { color: #b00020; }
+        #perf, #storage { flex-basis: 100%; margin: 0; color: #2a6f97; font-size: 0.85rem; }
         #map { height: calc(100vh - 110px); min-height: 400px; }
         .legend { background: #fff; padding: 8px 10px; border-radius: 6px; font-size: 12px;
                   line-height: 1.6; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
@@ -49,6 +50,8 @@
         </label>
         <button id="loadView" type="button">Load current map view</button>
         <p id="status">Type a city and pick it from the list, or pan and zoom the map and press “Load current map view”.</p>
+        <p id="perf" hidden></p>
+        <p id="storage" hidden></p>
     </header>
     <div id="map"></div>
 
@@ -232,7 +235,43 @@
             : `No active outdoor PM2.5 sensors found in ${label}. Try a bigger area.`;
         if (d.truncated) msg += ` Showing the first ${d.sensors.length} of ${d.total_found}; zoom in to see the rest.`;
         setStatus(msg);
+        showPerf(d.perf);
+        refreshStorage();
     }
+
+    // Timing of the chart query: pre-computed continuous aggregate vs the raw table
+    function showPerf(p) {
+        const el = document.getElementById("perf");
+        if (!p) { el.hidden = true; return; }
+        let t = `Chart data served in ${p.agg_ms} ms from the hourly continuous aggregate ` +
+                `(${p.raw_rows.toLocaleString()} raw readings rolled up into ${p.hourly_rows.toLocaleString()} hourly rows).`;
+        if (p.raw_ms != null) {
+            t += ` The same query on the raw table took ${p.raw_ms} ms`;
+            t += p.raw_ms >= p.agg_ms * 1.5 ? ` (${(p.raw_ms / p.agg_ms).toFixed(1)}× slower).` : ".";
+        }
+        if (p.loaded_sensors) t += ` Downloaded ${p.loaded_sensors} new sensors in ${p.load_secs} s.`;
+        el.textContent = t;
+        el.hidden = false;
+    }
+
+    // How big the readings table is, and how much of it Tiger's columnstore has compressed
+    async function refreshStorage() {
+        const el = document.getElementById("storage");
+        try {
+            const s = await (await fetch("/api/storage")).json();
+            const mb = b => (b / 1048576).toFixed(1) + " MB";
+            let t = "Database: " + (s.rows > 0 ? `about ${s.rows.toLocaleString()} readings, ` : "") +
+                    (s.total_bytes != null ? `${mb(s.total_bytes)} on disk. ` : "");
+            if (s.compressed_chunks > 0 && s.before_bytes && s.after_bytes)
+                t += `${s.compressed_chunks} of ${s.total_chunks} chunks are in the columnstore: ` +
+                     `${mb(s.before_bytes)} → ${mb(s.after_bytes)} (${(s.before_bytes / s.after_bytes).toFixed(1)}× smaller).`;
+            else
+                t += "No chunks are in the columnstore yet. Chunks compress once they are 2 days old.";
+            el.textContent = t;
+            el.hidden = false;
+        } catch (err) { el.hidden = true; }
+    }
+    refreshStorage();
 
     function popupFor(s, rows, avg) {
         const div = document.createElement("div");
