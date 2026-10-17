@@ -1,0 +1,6 @@
+[
+  { "name": "Northwest of the Capitol", "box": [38.8899, -77.12, 39.00, -77.0091] },
+  { "name": "Northeast of the Capitol", "box": [38.8899, -77.0091, 39.00, -76.91] },
+  { "name": "Southwest of the Capitol", "box": [38.79, -77.12, 38.8899, -77.0091] },
+  { "name": "Southeast of the Capitol", "box": [38.79, -77.0091, 38.8899, -76.91] }
+]
