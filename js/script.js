@@ -91,31 +91,40 @@
         }
     }
 
+
     function renderFavorites() {
         favoritesList.replaceChildren();
 
         const favorites = getFavorites();
 
         if (favorites.length === 0) {
-            const li = document.createElement("li");
-            li.textContent = "No favorite cities yet.";
-            favoritesList.append(li);
+            favoritesList.textContent = "No favorite cities yet.";
+            updateSaveButton();
             return;
         }
 
         for (const favorite of favorites) {
-            const li = document.createElement("li");
+            const card = document.createElement("article");
+            card.className = "favorite-card";
 
-            const cityBtn = document.createElement("button");
-            cityBtn.type = "button";
-            cityBtn.textContent = favorite.label;
-            cityBtn.onclick = () => choose(favorite);
+            const heading = document.createElement("h3");
+            heading.textContent = favorite.label;
 
-            const removeBtn = document.createElement("button");
-            removeBtn.type = "button";
-            removeBtn.textContent = "×";
-            removeBtn.setAttribute("aria-label", "Remove " + favorite.label);
-            removeBtn.onclick = () => {
+            const mapElement = document.createElement("div");
+            mapElement.className = "favorite-map";
+
+            const actions = document.createElement("div");
+            actions.className = "favorite-actions";
+
+            const openButton = document.createElement("button");
+            openButton.type = "button";
+            openButton.textContent = "Open in main map";
+            openButton.onclick = () => choose(favorite);
+
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.textContent = "Remove";
+            removeButton.onclick = () => {
                 const updated = getFavorites().filter(f =>
                     !(f.label === favorite.label &&
                     f.lat === favorite.lat &&
@@ -128,10 +137,77 @@
                 }
             };
 
-            li.append(cityBtn, removeBtn);
-            favoritesList.append(li);
+            actions.append(openButton, removeButton);
+            card.append(heading, mapElement, actions);
+            favoritesList.append(card);
+
+            const dLat = 0.15;
+            const dLon = 0.15 / Math.cos(favorite.lat * Math.PI / 180);
+            const s = favorite.lat - dLat;
+            const n = favorite.lat + dLat;
+            const w = favorite.lon - dLon;
+            const e = favorite.lon + dLon;
+
+            const cityMap = L.map(mapElement).setView(
+                [favorite.lat, favorite.lon], 10
+            );
+
+            L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(cityMap);
+
+            const cityLayer = L.featureGroup().addTo(cityMap);
+
+            // Leaflet needs to know the map's size after its card is inserted.
+            cityMap.invalidateSize();
+
+            async function loadFavoriteData() {
+                const bounds = [s, w, n, e].map(v => v.toFixed(3));
+                const cacheKey = "region:" + bounds.join(",");
+
+                try {
+                    let data = getCachedData(cacheKey);
+
+                    if (!data) {
+                        const q = new URLSearchParams({
+                            south: s,
+                            west: w,
+                            north: n,
+                            east: e,
+                            compare: "0"
+                        });
+
+                        const response = await fetch("/api/region?" + q);
+                        data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.error || response.status);
+                        }
+
+                        setCachedData(cacheKey, data);
+                    }
+
+                    show(data, favorite.label, cityLayer, false);
+                } catch (err) {
+                    console.error(
+                        "Could not load favorite city " + favorite.label,
+                        err
+                    );
+
+                    const error = document.createElement("p");
+                    error.textContent = "Could not load sensor data.";
+                    error.style.padding = "0.75rem";
+                    card.append(error);
+                }
+            }
+
+            loadFavoriteData();
         }
+
+        updateSaveButton();
     }
+
 
     function search(text) {
         const q = norm(text.trim());
@@ -318,9 +394,9 @@
         }
     }
 
-    function show(d, label) {
-        window.airData = d;
-        layer.clearLayers();
+    function show(d, label, targetLayer = layer, updateUI = true) {
+        if (updateUI) window.airData = d;
+        targetLayer.clearLayers();
 
         // Group hourly readings by sensor; the "last 24 h" ends at the newest reading
         const byFeed = new Map();
@@ -343,7 +419,7 @@
             })
                 .bindPopup(() => popupFor(s, rows, avg), { minWidth: 320, maxWidth: 360 })
                 .bindTooltip(avg === null ? s.name : `${s.name}: ${avg.toFixed(1)}`)
-                .addTo(layer);
+                .addTo(targetLayer);
         }
 
         let msg = d.sensors.length
@@ -351,9 +427,11 @@
               `${new Date(latest).toLocaleString()}. Click a dot for its history.`
             : `No active outdoor PM2.5 sensors found in ${label}. Try a bigger area.`;
         if (d.truncated) msg += ` Showing the first ${d.sensors.length} of ${d.total_found}; zoom in to see the rest.`;
-        setStatus(msg);
-        showPerf(d.perf);
-        refreshStorage();
+        if (updateUI) {
+            setStatus(msg);
+            showPerf(d.perf);
+            refreshStorage();
+        }
     }
 
     // Timing of the chart query: pre-computed continuous aggregate vs the raw table

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,24 +12,26 @@
 <body>
     <header>
         <h1>Air Quality</h1>
-        <label>City
-            <span class="ac">
-                <input id="place" type="text" autocomplete="off" spellcheck="false"
-                       placeholder="Start typing a city…" role="combobox"
-                       aria-autocomplete="list" aria-expanded="false" aria-controls="suggest">
-                <ul id="suggest" role="listbox" hidden></ul>
-            </span>
-        </label>
-        <button id="saveFavorite" type="button" disabled>☆ Save favorite</button>
-        <div id="favoritesSection">
-            <strong>Favorite cities</strong>
-            <ul id="favorites"></ul>
-        </div>
-        <button id="loadView" type="button">Load current map view</button>
-        <p id="status">Type a city and pick it from the list, or pan and zoom the map and press “Load current map view”.</p>
-        <p id="perf" hidden></p>
-        <p id="storage" hidden></p>
     </header>
+
+    <section id="favoritesSection">
+        <h2>Favorite Cities</h2>
+        <div id="favorites"></div>
+    </section>
+
+    <label>City
+        <span class="ac">
+            <input id="place" type="text" autocomplete="off" spellcheck="false"
+                    placeholder="Start typing a city…" role="combobox"
+                   aria-autocomplete="list" aria-expanded="false" aria-controls="suggest">
+            <ul id="suggest" role="listbox" hidden></ul>
+        </span>
+    </label>
+    <button id="saveFavorite" type="button" disabled>☆ Save favorite</button>
+    <button id="loadView" type="button">Load current map view</button>
+    <p id="status">Type a city and pick it from the list, or pan and zoom the map and press “Load current map view”.</p>
+    <p id="perf" hidden></p>
+    <p id="storage" hidden></p>
     <div id="map"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
