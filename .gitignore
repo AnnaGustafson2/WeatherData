@@ -1,0 +1,12 @@
+# Secrets: never commit the database password
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Mac
+.DS_Store
