@@ -209,7 +209,3 @@ TRUNCATE readings, sensors;
 - Richer time-series analytics in the page, such as "worst hour of the day" or a comparison with the previous day.
 - A time slider that scrubs the dots through the loaded week.
 - Marking the AirNow monitors differently, since they are more accurate than low-cost sensors.
-
-## Never commit the connection string
-
-It contains the database password. Share it privately, and keep it in your terminal (`export`) or a `.env` file, which `.gitignore` already excludes.
