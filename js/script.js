@@ -121,22 +121,84 @@
     let layer = L.featureGroup().addTo(map);
     let requestId = 0;   // ignore stale responses if the user switches quickly
 
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    function getCachedData(key) {
+        try {
+            const cached = localStorage.getItem(key);
+            if (!cached) return null;
+
+            const entry = JSON.parse(cached);
+
+            if (Date.now() - entry.timestamp > CACHE_TTL) {
+                localStorage.removeItem(key);
+                return null;
+            }
+
+            return entry.data;
+        } catch (err) {
+            return null;
+        }
+    }
+
+    function setCachedData(key, data) {
+        try {
+            localStorage.setItem(key, JSON.stringify({
+                timestamp: Date.now(),
+                data: data
+            }));
+        } catch (err) {
+            // Caching is optional; the map should still work without it.
+            console.warn("Could not cache map data:", err);
+        }
+    }
+    
     async function loadArea(s, w, n, e, label) {
         const myId = ++requestId;
         loadBtn.disabled = placeInput.disabled = true;
-        setStatus(`Loading ${label}… the first time an area is loaded this can take a minute.`);
+
+        // Round bounds so tiny coordinate differences don't create separate cache entries.
+        const bounds = [s, w, n, e].map(v => v.toFixed(3));
+        const cacheKey = "region:" + bounds.join(",");
+        const cached = getCachedData(cacheKey);
+
         try {
-            const q = new URLSearchParams({ south: s, west: w, north: n, east: e });
+            if (cached) {
+                setStatus(`Loading cached data for ${label}…`);
+                if (myId !== requestId) return;
+
+                show(cached, label);
+                setStatus(`Showing cached data for ${label}.`);
+                return;
+            }
+
+            setStatus(`Loading ${label}… the first time an area is loaded this can take a minute.`);
+
+            const q = new URLSearchParams({
+                south: s,
+                west: w,
+                north: n,
+                east: e,
+                compare: "0"
+            });
+
             const resp = await fetch("/api/region?" + q);
             const d = await resp.json();
+
             if (!resp.ok) throw new Error(d.error || resp.status);
             if (myId !== requestId) return;
+
+            setCachedData(cacheKey, d);
             show(d, label);
         } catch (err) {
-            if (myId === requestId) setStatus("Couldn't load " + label + ": " + err.message, true);
+            if (myId === requestId) {
+                setStatus("Couldn't load " + label + ": " + err.message, true);
+            }
             console.error(err);
         } finally {
-            if (myId === requestId) loadBtn.disabled = placeInput.disabled = false;
+            if (myId === requestId) {
+                loadBtn.disabled = placeInput.disabled = false;
+            }
         }
     }
 
