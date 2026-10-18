@@ -75,62 +75,121 @@ for (const groups of [CITIES, WORLD])
 // Best matches first: label starts with the text, then a word starts with it, then anywhere.
 // Within the same tier, bigger cities come first. Old names (Bombay, Saigon…) match too.
 
-function alertControls(favorite) {
-  const box = document.createElement("div");
-  box.className = "favorite-alerts";
-  box.style.cssText =
-    "padding:0.5rem 0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center";
 
-  const email = document.createElement("input");
-  email.type = "email";
-  email.placeholder = "you@example.com";
-  email.value = localStorage.getItem("airQualityAlertEmail") || "";
+let alertUid = 0;
+const ALERTS_KEY = "airQualityAlertSubs";
+const ALERT_LEVELS = [
+    { value: 35.5,  label: "Unhealthy for sensitive groups (35.5+)",
+      help: "A good choice if you have asthma or heart or lung conditions, or care for children or older adults." },
+    { value: 55.5,  label: "Unhealthy (55.5+)",
+      help: "Air that can affect everyone. Fewer emails, only for worse days." },
+    { value: 125.5, label: "Very unhealthy (125.5+)",
+      help: "Rare. Only for serious events like heavy wildfire smoke." },
+];
 
-  const level = document.createElement("select");
-  for (const [text, value] of [
-    ["Unhealthy for sensitive groups (35.5+)", 35.5],
-    ["Unhealthy (55.5+)", 55.5],
-    ["Very unhealthy (125.5+)", 125.5],
-  ]) {
-    level.add(new Option(text, value, false, value === 55.5));
-  }
-
-  const button = document.createElement("button");
-  button.type = "button";
-  button.textContent = "🔔 Email me alerts";
-
-  const msg = document.createElement("span");
-  msg.style.fontSize = "0.8rem";
-
-  button.onclick = async () => {
-    button.disabled = true;
-    msg.textContent = "Saving…";
-    try {
-      const resp = await fetch("/api/alerts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.value,
-          label: favorite.label,
-          lat: favorite.lat,
-          lon: favorite.lon,
-          threshold: Number(level.value),
-        }),
-      });
-      const body = await resp.json();
-      if (!resp.ok) throw new Error(body.error || resp.status);
-      localStorage.setItem("airQualityAlertEmail", email.value.trim());
-      msg.textContent = "Done. Check your inbox for a confirmation.";
-    } catch (err) {
-      msg.textContent = "Couldn't save: " + err.message;
-    } finally {
-      button.disabled = false;
-    }
-  };
-
-  box.append(email, level, button, msg);
-  return box;
+function getAlertSubs() {
+    try { return JSON.parse(localStorage.getItem(ALERTS_KEY)) || {}; } catch (err) { return {}; }
 }
+function setAlertSub(key, sub) {
+    try {
+        const all = getAlertSubs();
+        all[key] = sub;
+        localStorage.setItem(ALERTS_KEY, JSON.stringify(all));
+    } catch (err) { /* remembering is optional */ }
+}
+
+function alertControls(favorite) {
+    const uid = ++alertUid;
+    const key = `${favorite.lat},${favorite.lon}`;
+
+    const details = document.createElement("details");
+    details.className = "favorite-alerts";
+    details.innerHTML = `
+        <summary>
+            <span class="alerts-icon" aria-hidden="true">🔔</span>
+            <span class="alerts-summary">
+                <strong>Email alerts</strong>
+                <span class="alerts-subtitle"></span>
+            </span>
+            <span class="alerts-toggle" aria-hidden="true">+</span>
+        </summary>
+        <div class="alerts-content">
+            <p class="alerts-description"></p>
+            <form class="alert-form">
+                <div class="alert-field">
+                    <label for="alert-email-${uid}">Email address</label>
+                    <input id="alert-email-${uid}" type="email" name="email"
+                           autocomplete="email" placeholder="you@example.com" required>
+                </div>
+                <div class="alert-field">
+                    <label for="alert-level-${uid}">Alert me when the air is</label>
+                    <select id="alert-level-${uid}" name="level"></select>
+                    <p class="field-help"></p>
+                </div>
+                <button class="alert-submit" type="submit">Turn on email alerts</button>
+                <p class="alert-status" role="status"></p>
+            </form>
+        </div>`;
+
+    const $ = sel => details.querySelector(sel);
+    const form = $(".alert-form"), email = $("input"), level = $("select");
+    const help = $(".field-help"), status = $(".alert-status");
+    const submit = $(".alert-submit"), subtitle = $(".alerts-subtitle");
+    const levelLabel = v => (ALERT_LEVELS.find(l => l.value === Number(v)) || {}).label;
+
+    $(".alerts-description").textContent =
+        `We check ${favorite.label} every 30 minutes and email you once when it reaches your level. ` +
+        `You can unsubscribe from any email.`;
+
+    for (const l of ALERT_LEVELS) level.add(new Option(l.label, l.value));
+    const saved = getAlertSubs()[key];
+    level.value = saved ? saved.threshold : 55.5;
+    email.value = saved ? saved.email : (localStorage.getItem("airQualityAlertEmail") || "");
+
+    const refresh = () => {
+        help.textContent = (ALERT_LEVELS.find(l => l.value === Number(level.value)) || {}).help;
+        const on = !!getAlertSubs()[key];
+        details.classList.toggle("is-on", on);
+        const s = getAlertSubs()[key];
+        subtitle.textContent = on
+            ? `On: emails ${s.email} at ${levelLabel(s.threshold)}`
+            : "Get an email when the air here becomes unhealthy";
+        submit.textContent = on ? "Update alert" : "Turn on email alerts";
+    };
+    level.addEventListener("change", refresh);
+    refresh();
+
+    form.addEventListener("submit", async ev => {
+        ev.preventDefault();
+        submit.disabled = true;
+        status.className = "alert-status";
+        status.textContent = "Saving…";
+        try {
+            const resp = await fetch("/api/alerts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: email.value, label: favorite.label,
+                                       lat: favorite.lat, lon: favorite.lon,
+                                       threshold: Number(level.value) }),
+            });
+            const body = await resp.json();
+            if (!resp.ok) throw new Error(body.error || resp.status);
+            const addr = email.value.trim();
+            localStorage.setItem("airQualityAlertEmail", addr);
+            setAlertSub(key, { email: addr, threshold: Number(level.value) });
+            status.className = "alert-status success";
+            status.textContent = "Alerts are on. Check your inbox for a confirmation.";
+            refresh();
+        } catch (err) {
+            status.textContent = "Couldn't save: " + err.message;
+        } finally {
+            submit.disabled = false;
+        }
+    });
+
+    return details;
+}
+
 
 function getFavorites() {
   try {

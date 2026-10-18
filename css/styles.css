@@ -663,3 +663,159 @@ header .header-content {
         left: 0;
     }
 }
+
+/* Collapsible email alerts inside each favorite city card */
+.favorite-alerts {
+    border-top: 1px solid #edf0eb;
+    background: #fbfcfa;
+}
+
+.favorite-alerts > summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 0.95rem;
+    cursor: pointer;
+    list-style: none;
+    transition: background 150ms ease;
+}
+
+.favorite-alerts > summary::-webkit-details-marker { display: none; }
+.favorite-alerts > summary:hover { background: var(--green-light); }
+.favorite-alerts > summary:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
+
+.favorite-alerts .alerts-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #eef1ee;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    filter: grayscale(1);
+}
+
+.favorite-alerts.is-on .alerts-icon {
+    background: var(--green-light);
+    filter: none;
+}
+
+.favorite-alerts .alerts-summary {
+    display: grid;
+    gap: 0.15rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.favorite-alerts .alerts-summary strong {
+    color: var(--green-dark);
+    font-size: 0.9rem;
+}
+
+.favorite-alerts .alerts-subtitle {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.favorite-alerts.is-on .alerts-subtitle {
+    color: var(--green);
+    font-weight: 600;
+}
+
+.favorite-alerts .alerts-toggle {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--green-light);
+    color: var(--green);
+    font-size: 1.2rem;
+    line-height: 1;
+    transition: transform 200ms ease;
+}
+
+.favorite-alerts[open] .alerts-toggle { transform: rotate(45deg); }
+
+.favorite-alerts .alerts-content {
+    padding: 0.25rem 0.95rem 1.1rem;
+}
+
+.favorite-alerts .alerts-description {
+    margin: 0 0 1rem;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+}
+
+.favorite-alerts .alert-form { display: grid; gap: 0.9rem; }
+.favorite-alerts .alert-field { display: grid; gap: 0.35rem; min-width: 0; }
+
+.favorite-alerts .alert-field label {
+    color: #20352a;
+    font-size: 0.82rem;
+    font-weight: 650;
+}
+
+.favorite-alerts .alert-field input,
+.favorite-alerts .alert-field select {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 0.6rem 0.75rem;
+    color: #20352a;
+    background: #fff;
+    border: 1px solid #cbd8ce;
+    border-radius: 9px;
+    font-size: 0.88rem;
+}
+
+.favorite-alerts .alert-field input::placeholder { color: #93a197; }
+
+.favorite-alerts .alert-field input:focus,
+.favorite-alerts .alert-field select:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(36, 107, 74, 0.15);
+}
+
+.favorite-alerts .field-help {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.favorite-alerts .alert-submit {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.7rem 1rem;
+    color: #fff;
+    background: var(--green);
+    border: 0;
+    border-radius: 9px;
+    font-weight: 650;
+    transition: background 150ms ease;
+}
+
+.favorite-alerts .alert-submit:hover:not(:disabled) { background: var(--green-dark); }
+.favorite-alerts .alert-submit:disabled { opacity: 0.6; cursor: wait; }
+
+.favorite-alerts .alert-status {
+    margin: 0;
+    color: #b42318;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.favorite-alerts .alert-status:empty { display: none; }
+.favorite-alerts .alert-status.success { color: var(--green); }
+
+/* Opening one card's alerts shouldn't stretch the cards beside it. */
+#favorites { align-items: start; }
