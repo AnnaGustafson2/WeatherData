@@ -3,3 +3,5 @@ psycopg[binary]
 psycopg[pool]
 flask
 flask-compress
+python-dotenv
+resend python-dotenv
