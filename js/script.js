@@ -648,9 +648,9 @@ function show(d, label, targetLayer = layer, updateUI = true) {
       ? lastDay.reduce((a, r) => a + r.v, 0) / lastDay.length
       : null;
     L.circleMarker([s.latitude, s.longitude], {
-      radius: 8,
-      weight: 1.5,
-      color: "#222",
+      radius: 6,
+      weight: 1,
+      color: "#35664A",
       fillOpacity: 0.9,
       fillColor: avg === null ? NO_DATA : bandFor(avg).color,
     })

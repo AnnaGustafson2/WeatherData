@@ -1,3 +1,4 @@
+
 /* =========================
    Base and typography
    ========================= */
@@ -45,46 +46,69 @@ select:focus-visible {
     outline-offset: 3px;
 }
 
-header {
-    padding: 1.5rem max(1.25rem, calc((100% - 1440px) / 2));
+/* =========================
+   Zephora site header
+   ========================= */
+
+.site-header {
+    padding: 1rem max(1.25rem, calc((100% - 1440px) / 2));
     background: var(--surface);
     border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
 }
 
-.header-content {
+.site-header .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
     max-width: 1440px;
     margin: 0 auto;
 }
 
-.brand {
+.site-brand {
+    color: var(--green-dark);
+    font-size: 1.65rem;
+    font-weight: 800;
+    letter-spacing: -0.055em;
+    text-decoration: none;
+}
+
+.site-nav {
     display: flex;
     align-items: center;
-    gap: 0.85rem;
+    gap: 1.5rem;
 }
 
-.brand-icon {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(--green-light);
+.site-nav a {
+    padding: 0.45rem 0;
+    color: #425d52;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
     color: var(--green);
-    font-size: 1.6rem;
-    font-weight: 700;
+    border-bottom-color: var(--green);
 }
 
-h1 {
-    margin: 0;
-    font-size: 1.55rem;
-    letter-spacing: -0.04em;
+.site-nav a:focus-visible,
+.site-brand:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 4px;
+    border-radius: 2px;
 }
 
-.brand p {
-    margin: 0.2rem 0 0;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-}
+/* =========================
+   Main layout and headings
+   ========================= */
 
 main {
     width: 100%;
@@ -121,7 +145,7 @@ main {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.15rem;
-    align-items: stretch;
+    align-items: start;
 }
 
 .favorite-card {
@@ -148,9 +172,6 @@ main {
     overflow-wrap: anywhere;
 }
 
-/* Map and chart are stacked to give each visualization
-   the full available width of its city card. */
-
 .favorite-content {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -161,17 +182,17 @@ main {
 
 .favorite-map,
 .favorite-chart {
-    display: block;
     position: relative;
+    display: block;
     width: 100%;
     min-width: 0;
     height: 210px;
     overflow: hidden;
     border-radius: 9px;
-    background: #f0f4f0;
 }
 
 .favorite-map {
+    background: #f0f4f0;
     border: 1px solid #e5ebe5;
 }
 
@@ -209,6 +230,194 @@ main {
 
 .favorite-actions button:hover {
     background: var(--green-light);
+}
+
+/* =========================
+   Email alerts
+   ========================= */
+
+.favorite-alerts {
+    background: #fbfcfa;
+    border-top: 1px solid #edf0eb;
+}
+
+.favorite-alerts > summary {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 0.95rem;
+    cursor: pointer;
+    list-style: none;
+    transition: background 150ms ease;
+}
+
+.favorite-alerts > summary::-webkit-details-marker {
+    display: none;
+}
+
+.favorite-alerts > summary:hover {
+    background: var(--green-light);
+}
+
+.favorite-alerts > summary:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: -2px;
+}
+
+.favorite-alerts .alerts-icon {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #eef1ee;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    filter: grayscale(1);
+}
+
+.favorite-alerts.is-on .alerts-icon {
+    background: var(--green-light);
+    filter: none;
+}
+
+.favorite-alerts .alerts-summary {
+    display: grid;
+    flex: 1;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.favorite-alerts .alerts-summary strong {
+    color: var(--green-dark);
+    font-size: 0.9rem;
+}
+
+.favorite-alerts .alerts-subtitle {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.favorite-alerts.is-on .alerts-subtitle {
+    color: var(--green);
+    font-weight: 600;
+}
+
+.favorite-alerts .alerts-toggle {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--green-light);
+    color: var(--green);
+    font-size: 1.2rem;
+    line-height: 1;
+    transition: transform 200ms ease;
+}
+
+.favorite-alerts[open] .alerts-toggle {
+    transform: rotate(45deg);
+}
+
+.favorite-alerts .alerts-content {
+    padding: 0.25rem 0.95rem 1.1rem;
+}
+
+.favorite-alerts .alerts-description {
+    margin: 0 0 1rem;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+}
+
+.favorite-alerts .alert-form {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.favorite-alerts .alert-field {
+    display: grid;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.favorite-alerts .alert-field label {
+    color: #20352a;
+    font-size: 0.82rem;
+    font-weight: 650;
+}
+
+.favorite-alerts .alert-field input,
+.favorite-alerts .alert-field select {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 0.6rem 0.75rem;
+    color: #20352a;
+    background: #fff;
+    border: 1px solid #cbd8ce;
+    border-radius: 9px;
+    font-size: 0.88rem;
+}
+
+.favorite-alerts .alert-field input::placeholder {
+    color: #93a197;
+}
+
+.favorite-alerts .alert-field input:focus,
+.favorite-alerts .alert-field select:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(36, 107, 74, 0.15);
+}
+
+.favorite-alerts .field-help {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.favorite-alerts .alert-submit {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.7rem 1rem;
+    color: #fff;
+    background: var(--green);
+    border: 0;
+    border-radius: 9px;
+    font-weight: 650;
+    transition: background 150ms ease;
+}
+
+.favorite-alerts .alert-submit:hover:not(:disabled) {
+    background: var(--green-dark);
+}
+
+.favorite-alerts .alert-submit:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.favorite-alerts .alert-status {
+    margin: 0;
+    color: #b42318;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.favorite-alerts .alert-status:empty {
+    display: none;
+}
+
+.favorite-alerts .alert-status.success {
+    color: var(--green);
 }
 
 /* =========================
@@ -389,7 +598,9 @@ main {
     line-height: 1.5;
 }
 
-/* Leaflet controls and popups */
+/* =========================
+   Leaflet controls and popups
+   ========================= */
 
 .leaflet-container {
     font-family: inherit;
@@ -449,7 +660,9 @@ main {
     fill: #64756b;
 }
 
-/* Legend */
+/* =========================
+   Map legend
+   ========================= */
 
 .legend {
     padding: 0.7rem 0.85rem;
@@ -487,8 +700,8 @@ footer {
 }
 
 footer p {
-    margin: 0 auto;
     max-width: 720px;
+    margin: 0 auto;
 }
 
 /* =========================
@@ -514,8 +727,26 @@ footer p {
 }
 
 @media (max-width: 650px) {
-    header {
+    .site-header {
         padding: 1rem;
+    }
+
+    .site-header .header-content {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.85rem;
+    }
+
+    .site-brand {
+        font-size: 1.4rem;
+    }
+
+    .site-nav {
+        gap: 1.25rem;
+    }
+
+    .site-nav a {
+        font-size: 0.875rem;
     }
 
     main {
@@ -560,61 +791,9 @@ footer p {
     }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-
-/* Header navigation */
-
-header .header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-}
-
-.brand-home {
-    display: inline-flex;
-    text-decoration: none;
-}
-
-.site-nav {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.site-nav > a,
-.nav-menu > summary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.65rem 0.85rem;
-    color: #405548;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    list-style: none;
-}
-
-.nav-menu > summary::-webkit-details-marker {
-    display: none;
-}
-
-.site-nav > a:hover,
-.nav-menu > summary:hover,
-.site-nav > a[aria-current="page"] {
-    color: #246b4a;
-    background: #e8f1e9;
-}
+/* =========================
+   Navigation dropdown
+   ========================= */
 
 .nav-menu {
     position: relative;
@@ -628,7 +807,7 @@ header .header-content {
     width: 230px;
     padding: 0.4rem;
     background: #fff;
-    border: 1px solid #e0e7df;
+    border: 1px solid var(--border);
     border-radius: 10px;
     box-shadow: 0 8px 24px rgba(25, 52, 34, 0.12);
 }
@@ -643,179 +822,26 @@ header .header-content {
 }
 
 .nav-dropdown a:hover {
-    color: #246b4a;
-    background: #e8f1e9;
+    color: var(--green);
+    background: var(--green-light);
 }
 
 @media (max-width: 500px) {
-    header .header-content {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .site-nav {
-        width: 100%;
-    }
-
     .nav-dropdown {
         right: auto;
         left: 0;
     }
 }
 
-/* Collapsible email alerts inside each favorite city card */
-.favorite-alerts {
-    border-top: 1px solid #edf0eb;
-    background: #fbfcfa;
+/* =========================
+   Reduced motion
+   ========================= */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
 }
-
-.favorite-alerts > summary {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.85rem 0.95rem;
-    cursor: pointer;
-    list-style: none;
-    transition: background 150ms ease;
-}
-
-.favorite-alerts > summary::-webkit-details-marker { display: none; }
-.favorite-alerts > summary:hover { background: var(--green-light); }
-.favorite-alerts > summary:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; }
-
-.favorite-alerts .alerts-icon {
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: #eef1ee;
-    color: var(--text-muted);
-    font-size: 1.05rem;
-    filter: grayscale(1);
-}
-
-.favorite-alerts.is-on .alerts-icon {
-    background: var(--green-light);
-    filter: none;
-}
-
-.favorite-alerts .alerts-summary {
-    display: grid;
-    gap: 0.15rem;
-    flex: 1;
-    min-width: 0;
-}
-
-.favorite-alerts .alerts-summary strong {
-    color: var(--green-dark);
-    font-size: 0.9rem;
-}
-
-.favorite-alerts .alerts-subtitle {
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    line-height: 1.4;
-    overflow-wrap: anywhere;
-}
-
-.favorite-alerts.is-on .alerts-subtitle {
-    color: var(--green);
-    font-weight: 600;
-}
-
-.favorite-alerts .alerts-toggle {
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: var(--green-light);
-    color: var(--green);
-    font-size: 1.2rem;
-    line-height: 1;
-    transition: transform 200ms ease;
-}
-
-.favorite-alerts[open] .alerts-toggle { transform: rotate(45deg); }
-
-.favorite-alerts .alerts-content {
-    padding: 0.25rem 0.95rem 1.1rem;
-}
-
-.favorite-alerts .alerts-description {
-    margin: 0 0 1rem;
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    line-height: 1.6;
-}
-
-.favorite-alerts .alert-form { display: grid; gap: 0.9rem; }
-.favorite-alerts .alert-field { display: grid; gap: 0.35rem; min-width: 0; }
-
-.favorite-alerts .alert-field label {
-    color: #20352a;
-    font-size: 0.82rem;
-    font-weight: 650;
-}
-
-.favorite-alerts .alert-field input,
-.favorite-alerts .alert-field select {
-    width: 100%;
-    min-width: 0;
-    min-height: 42px;
-    padding: 0.6rem 0.75rem;
-    color: #20352a;
-    background: #fff;
-    border: 1px solid #cbd8ce;
-    border-radius: 9px;
-    font-size: 0.88rem;
-}
-
-.favorite-alerts .alert-field input::placeholder { color: #93a197; }
-
-.favorite-alerts .alert-field input:focus,
-.favorite-alerts .alert-field select:focus {
-    outline: none;
-    border-color: var(--green);
-    box-shadow: 0 0 0 3px rgba(36, 107, 74, 0.15);
-}
-
-.favorite-alerts .field-help {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 0.78rem;
-    line-height: 1.55;
-}
-
-.favorite-alerts .alert-submit {
-    width: 100%;
-    min-height: 44px;
-    padding: 0.7rem 1rem;
-    color: #fff;
-    background: var(--green);
-    border: 0;
-    border-radius: 9px;
-    font-weight: 650;
-    transition: background 150ms ease;
-}
-
-.favorite-alerts .alert-submit:hover:not(:disabled) { background: var(--green-dark); }
-.favorite-alerts .alert-submit:disabled { opacity: 0.6; cursor: wait; }
-
-.favorite-alerts .alert-status {
-    margin: 0;
-    color: #b42318;
-    font-size: 0.82rem;
-    line-height: 1.5;
-    overflow-wrap: anywhere;
-}
-
-.favorite-alerts .alert-status:empty { display: none; }
-.favorite-alerts .alert-status.success { color: var(--green); }
-
-/* Opening one card's alerts shouldn't stretch the cards beside it. */
-#favorites { align-items: start; }
