@@ -49,6 +49,11 @@ select:focus-visible {
 /* =========================
    Zephora site header
    ========================= */
+header {
+    padding: 1.5rem max(1.25rem, calc((100% - 1440px) / 2));
+    box-shadow: 0 20px 20px rgba(25, 65, 50, 0.2);
+    border-bottom: 1px solid var(--border);
+}
 
 .site-header {
     padding: 1rem max(1.25rem, calc((100% - 1440px) / 2));
@@ -139,6 +144,8 @@ main {
 #favoritesSection {
     width: min(1440px, 100%);
     margin: 0 auto 2.25rem;
+    margin-left: 25px;
+
 }
 
 #favorites {

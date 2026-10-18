@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <link rel="stylesheet" href="css/styles.css">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
@@ -55,39 +56,7 @@
         text-decoration-thickness: 2px;
       }
 
-      header {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.75rem 1.5rem;
-        padding: 0.9rem max(1.25rem, calc((100% - var(--content-width)) / 2));
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
-      }
-
-      .brand {
-        font-weight: 750;
-        font-size: 1.1rem;
-        color: var(--text);
-        text-decoration: none;
-      }
-
-      nav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        align-items: center;
-      }
-
-      nav a {
-        font-size: 0.95rem;
-        font-weight: 550;
-        text-decoration: none;
-      }
+      
 
       nav a[aria-current="page"] {
         color: var(--accent);
@@ -277,14 +246,7 @@
       }
 
       @media (max-width: 650px) {
-        header {
-          position: static;
-          align-items: flex-start;
-        }
-
-        nav {
-          gap: 0.65rem 1rem;
-        }
+     
 
         .grid {
           grid-template-columns: 1fr;
@@ -472,6 +434,30 @@
         }
       </style>
     </head>
+<header>
+  <div class="header-content">
+
+    <a class="brand-home" href="/" aria-label="Home">
+      <svg width="48" height="48" viewBox="0 0 64 64"
+           fill="none" stroke="#D6F1E1"
+           stroke-width="4" stroke-linecap="round">
+        <path d="M8 20 H43 Q55 20 55 10 Q55 2 46 4"/>
+        <path d="M5 32 H52 Q62 32 60 42 Q58 51 48 47"/>
+        <path d="M12 44 H33 Q43 44 42 53 Q41 60 34 58"/>
+      </svg>
+    </a>
+
+    <a class="header-title">
+      <h1>Zephyra</h1>
+      <p>Your air, at a glance.</p>
+    </a>
+
+    <nav class="site-nav">
+<a href="/">← Back to Dashboard</a>
+    </nav>
+
+  </div>
+</header>
 
     <main class="about-main">
       <!-- ANIMATED ABOUT PAGE HERO -->
