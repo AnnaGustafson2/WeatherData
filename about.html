@@ -824,61 +824,6 @@
 <!-- END ANIMATED HERO -->
 
 
-      <section class="about-section" id="overview">
-        <h2>What is this dashboard?</h2>
-        <p>
-          This dashboard combines an interactive map, available outdoor
-          monitoring sensors, and historical readings to help users explore air
-          quality across different regions.
-        </p>
-        <p>
-          Search for a location, explore the map, and save cities to compare
-          their available historical data.
-        </p>
-      </section>
-
-      <section class="about-section" id="pm25">
-        <h2>Understanding PM2.5</h2>
-        <p>
-          PM2.5 refers to fine particulate matter with a diameter of 2.5
-          micrometers or smaller. These particles can come from sources such as
-          vehicle emissions, combustion, smoke, and other activities.
-        </p>
-        <p>
-          Because these particles are small enough to enter deep into the lungs,
-          PM2.5 is an important pollutant to monitor. Concentrations can vary
-          with weather, emissions, geography, and time.
-        </p>
-
-        <div class="about-grid">
-          <div class="about-note">
-            <h3>What readings tell us</h3>
-            <p>
-              Measurements provide a snapshot of particulate concentrations at a
-              particular monitoring location and time.
-            </p>
-          </div>
-
-          <div class="about-note">
-            <h3>Why location matters</h3>
-            <p>
-              Nearby sensors may report different values because local
-              conditions and sources of pollution vary.
-            </p>
-          </div>
-        </div>
-
-        <p>
-          Learn more from the
-          <a
-            href="https://www.epa.gov/pm-pollution"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            U.S. Environmental Protection Agency </a
-          >.
-        </p>
-      </section>
 
 <!-- ============================= -->
 <!-- INTERACTIVE AIR QUALITY GUIDE -->
@@ -1347,121 +1292,638 @@
 
 <!-- END OF INTERACTIVE AIR QUALITY GUIDE -->
 
-      <section class="about-section" id="data">
-        <h2>Where does the data come from?</h2>
-        <p>
-          The dashboard discovers available monitoring sensors for the region
-          being explored and retrieves their recorded measurements. Data
-          availability and historical coverage differ by sensor.
-        </p>
+      
 
-        <h3>How the dashboard works</h3>
-        <ol>
-          <li>Search for a city or navigate to a region on the map.</li>
-          <li>
-            Retrieve available outdoor PM2.5 sensor information for that area.
-          </li>
-          <li>Load readings and display them on the interactive map.</li>
-          <li>
-            Explore saved locations and their available historical trends.
-          </li>
-        </ol>
 
-        <h3>Technology</h3>
-        <p>
-          The project uses HTML, CSS, and JavaScript for the interface; Leaflet
-          for interactive mapping; D3.js for data visualization; Python and
-          Flask for the backend; and Tiger Data with PostgreSQL and TimescaleDB
-          for time-series storage and queries.
-        </p>
-      </section>
 
-      <section class="about-section" id="limitations">
-        <h2>Limitations and responsible use</h2>
-        <ul>
-          <li>
-            Sensor availability varies by region, and some areas may have
-            limited monitoring coverage.
-          </li>
-          <li>
-            Readings may be delayed, missing, or affected by sensor quality and
-            local environmental conditions.
-          </li>
-          <li>
-            A sensor measures conditions near its location; its reading does not
-            necessarily represent an entire city.
-          </li>
-          <li>
-            Historical charts reflect the data available to the dashboard, not
-            necessarily a complete record for every day.
-          </li>
-        </ul>
+<!--info carousel w pretty colors, mayb add cuter icons rn ts is emojis -->
+
+<style>
+  .learn-carousel {
+    margin-top: 30px;
+    padding: 30px;
+    background: #eeece5;
+    border: 1px solid #d4d2c8;
+    border-radius: 22px;
+  }
+
+  .learn-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .learn-carousel h2 {
+    margin: 0;
+    color: #263e36;
+    font-size: 1.7rem;
+  }
+
+  .learn-label {
+    color: #568376;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .learn-arrows {
+    display: flex;
+    gap: 8px;
+  }
+
+  .learn-arrows button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #c7cec5;
+    background: white;
+    color: #315d50;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .learn-arrows button:hover {
+    background: #315d50;
+    color: white;
+  }
+
+  .learn-track {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    padding: 5px 2px 12px;
+  }
+
+  .learn-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .learn-card {
+    flex: 0 0 calc((100% - 48px) / 3.35);
+    scroll-snap-align: start;
+    border-radius: 18px;
+    padding: 22px;
+    min-height: 335px;
+    display: flex;
+    flex-direction: column;
+    color: #263e36;
+  }
+
+  .learn-card:nth-child(1) { background: #dcebe1; }
+  .learn-card:nth-child(2) { background: #dcebf0; }
+  .learn-card:nth-child(3) { background: #f3e7d5; }
+  .learn-card:nth-child(4) { background: #e9e0ed; }
+  .learn-card:nth-child(5) { background: #f3e4e1; }
+  .learn-card:nth-child(6) { background: #e3ebdd; }
+
+  .learn-number {
+    font-size: 1.8rem;
+    font-weight: 750;
+    color: #4a776c;
+  }
+
+  .learn-illustration {
+    align-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    margin: 8px 0 14px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.42);
+    font-size: 64px;
+  }
+
+  .learn-card h3 {
+    margin: 0 0 9px;
+    font-size: 1.15rem;
+    color: #263e36;
+    line-height: 1.3;
+  }
+
+  .learn-card p {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #506157;
+    margin: 0 0 15px;
+  }
+
+  .learn-card a {
+    margin-top: auto;
+    color: #276d59;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .learn-card a:hover {
+    text-decoration: underline;
+  }
+
+  .learn-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 15px;
+  }
+
+  .learn-dot {
+    width: 9px;
+    height: 9px;
+    padding: 0;
+    border-radius: 50%;
+    border: none;
+    background: #bec8bf;
+    cursor: pointer;
+  }
+
+  .learn-dot.active {
+    background: #3e7565;
+    width: 23px;
+    border-radius: 8px;
+  }
+
+  @media (max-width: 750px) {
+    .learn-carousel { padding: 20px; }
+    .learn-card { flex-basis: 65%; }
+    .learn-carousel h2 { font-size: 1.3rem; }
+    .learn-illustration {
+      width: 100px;
+      height: 100px;
+      font-size: 54px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .learn-track { scroll-behavior: auto; }
+  }
+  
+/* read more */
+.learn-more {
+  margin-top: auto;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #276d59;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.learn-more:hover {
+  text-decoration: underline;
+}
+
+/* Expanded information panel */
+.learn-expanded {
+  position: relative;
+  margin-top: 22px;
+  padding: 27px;
+  background: #ffffff;
+  border: 1px solid #c7d6cd;
+  border-radius: 18px;
+  color: #435c50;
+  line-height: 1.75;
+  animation: learnAppear 0.3s ease;
+}
+
+.learn-expanded[hidden] {
+  display: none;
+}
+
+.learn-expanded h3 {
+  margin: 0 40px 15px 0;
+  font-size: 1.4rem;
+  color: #263e36;
+}
+
+.learn-expanded p {
+  margin-bottom: 12px;
+}
+
+.learn-expanded ul {
+  padding-left: 22px;
+}
+
+.learn-expanded li {
+  margin-bottom: 9px;
+}
+
+.learn-close {
+  position: absolute;
+  top: 15px;
+  right: 17px;
+  border: none;
+  background: #edf3ee;
+  color: #315d50;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+@keyframes learnAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .learn-expanded {
+    animation: none;
+  }
+}
+/* Make PM2.5 popup boxes more compact */
+.learn-expanded .about-note {
+    padding: 12px;
+}
+
+.learn-expanded .about-grid {
+    gap: 10px;
+}
+
+.learn-expanded .about-note h3 {
+    margin-bottom: 5px;
+}
+
+.learn-expanded .about-note p {
+    margin-bottom: 0px;
+}
+
+</style>
+
+<section class="learn-carousel" aria-label="Explore air quality topics">
+
+  <p class="learn-label">EXPLORE THE BASICS</p>
+
+  <div class="learn-header">
+    <h2>Learn more about air quality</h2>
+
+    <div class="learn-arrows">
+      <button type="button" id="learnPrev"
+              aria-label="Previous slide">‹</button>
+      <button type="button" id="learnNext"
+              aria-label="Next slide">›</button>
+    </div>
+  </div>
+
+  
+<div class="learn-track" id="learnTrack">
+
+  <article class="learn-card">
+    <span class="learn-number">01</span>
+    <div class="learn-illustration" aria-hidden="true">🌫️</div>
+    <h3>Understanding PM2.5</h3>
+    <p>
+      PM2.5 refers to airborne particles 2.5 micrometers
+      or smaller. These microscopic pollutants can come
+      from vehicle exhaust, wildfires, industrial processes,
+      and other combustion sources. Because they are so
+      small, they can penetrate deep into your lungs.
+    </p>
+    <button class="learn-more" data-topic="pm25">
+      Read more ↓
+    </button>
+  </article>
+
+  <article class="learn-card">
+    <span class="learn-number">02</span>
+    <div class="learn-illustration" aria-hidden="true">📡</div>
+    <h3>Where Data Comes From</h3>
+    <p>
+      Our dashboard uses air quality measurements from
+      environmental monitoring sensors accessed through
+      CMU CREATE Lab's ESDR platform. These sensors
+      collect readings at different locations and times,
+      helping us visualize local pollution patterns.
+    </p>
+    <button class="learn-more" data-topic="data">
+      Read more ↓
+    </button>
+  </article>
+
+  <article class="learn-card">
+    <span class="learn-number">03</span>
+    <div class="learn-illustration" aria-hidden="true">💻</div>
+    <h3>Behind the Technology</h3>
+    <p>
+      Our application combines interactive maps,
+      environmental data processing, and time-series
+      analysis. Python and Flask handle the backend,
+      Leaflet displays sensor locations, and TimescaleDB
+      stores readings for historical exploration.
+    </p>
+    <button class="learn-more" data-topic="tech">
+      Read more ↓
+    </button>
+  </article>
+
+  <article class="learn-card">
+    <span class="learn-number">04</span>
+    <div class="learn-illustration" aria-hidden="true">🔍</div>
+    <h3>Understanding Limitations</h3>
+    <p>
+      Air pollution varies across neighborhoods, times,
+      and weather conditions. Sensor coverage is uneven,
+      and readings may be missing or delayed. A single
+      measurement does not necessarily represent the
+      conditions of an entire city.
+    </p>
+    <button class="learn-more" data-topic="limits">
+      Read more ↓
+    </button>
+  </article>
+
+  <article class="learn-card">
+    <span class="learn-number">05</span>
+    <div class="learn-illustration" aria-hidden="true">🛡️</div>
+    <h3>Using Data Responsibly</h3>
+    <p>
+      Air quality measurements are useful for identifying
+      pollution trends and planning activities. However,
+      readings should be interpreted alongside official
+      advisories, particularly during wildfires and
+      severe pollution events.
+    </p>
+    <a href="https://www.airnow.gov/"
+       target="_blank" rel="noopener noreferrer">
+      Visit AirNow ↗
+    </a>
+  </article>
+
+  <article class="learn-card">
+    <span class="learn-number">06</span>
+    <div class="learn-illustration" aria-hidden="true">🌎</div>
+    <h3>Explore Further</h3>
+    <p>
+      Air pollution affects communities around the world.
+      Explore how exposure contributes to environmental
+      health challenges, learn about international air
+      quality guidelines, and discover ways to reduce
+      exposure.
+    </p>
+
+    <p>
+    <a href="https://leafletjs.com/"
+       target="_blank" rel="noopener noreferrer">
+      Leaflet ↗ 
+    </a>
+    — Open-source interactive maps, markers, and map controls.
+  </p>
+    <a href="https://www.who.int/health-topics/air-pollution"
+       target="_blank" rel="noopener noreferrer">
+      Explore WHO ↗
+    </a>
+    
+    
+  </article>
+
+</div>
+
+
+  <div class="learn-dots" id="learnDots"
+       aria-label="Carousel navigation"></div>
+       
+<!-- info card that expands on click -->
+<div class="learn-expanded" id="learnExpanded" hidden>
+  <button class="learn-close" id="learnClose"
+          aria-label="Close information">×</button>
+  <div id="learnExpandedContent"></div>
+</div>
+
+
+</section>
+
+<script>
+  const learnTrack = document.getElementById("learnTrack");
+  const learnCards = [...learnTrack.children];
+  const learnDots = document.getElementById("learnDots");
+
+  function cardStep() {
+    return learnCards[1].offsetLeft - learnCards[0].offsetLeft;
+  }
+
+  function currentSlide() {
+    return Math.round(learnTrack.scrollLeft / cardStep());
+  }
+
+  function goToSlide(index) {
+    learnTrack.scrollTo({
+      left: index * cardStep(),
+      behavior: "smooth"
+    });
+  }
+
+  function updateDots() {
+  learnDots.innerHTML = "";
+
+  for (let i = 0; i < 2; i++) {
+    const dot = document.createElement("button");
+
+    dot.className = "learn-dot" +
+      ((learnTrack.scrollLeft >= learnTrack.scrollWidth - learnTrack.clientWidth - 10 ? 1 : 0) === i
+        ? " active" : "");
+
+    dot.setAttribute("aria-label", "Go to page " + (i + 1));
+
+    dot.onclick = () => goToSlide(i * 3);
+
+    learnDots.appendChild(dot);
+  }
+}
+
+document.getElementById("learnPrev").onclick = () => {
+  goToSlide(0);
+};
+
+document.getElementById("learnNext").onclick = () => {
+  goToSlide(3);
+};
+
+  learnTrack.addEventListener("scroll", updateDots);
+  window.addEventListener("resize", updateDots);
+  updateDots();
+  
+const learnInfo = {
+  
+
+pm25: {
+  title: "Understanding PM2.5",
+  text: `
+    <p>
+      PM2.5 refers to fine particulate matter with a diameter of 2.5
+      micrometers or smaller. These particles can come from sources such as
+      vehicle emissions, combustion, smoke, and other activities.
+    </p>
+    <p>
+      Because these particles are small enough to enter deep into the lungs,
+      PM2.5 is an important pollutant to monitor. Concentrations can vary
+      with weather, emissions, geography, and time.
+    </p>
+
+    <div class="about-grid">
+          <div class="about-note">
+            <h3>What readings tell us</h3>
+            <p>
+              Measurements provide a snapshot of particulate concentrations at a
+              particular monitoring location and time.
+            </p>
+          </div>
+
+          <div class="about-note">
+            <h3>Why location matters</h3>
+            <p>
+              Nearby sensors may report different values because local
+              conditions and sources of pollution vary.
+            </p>
+          </div>
+        </div>
+<br>
         <p>
-          This dashboard is intended for exploration and education. It should
-          not replace official public-health guidance or local air quality
-          advisories.
-        </p>
-        <p>
-          For current public information, visit
+          
+          Learn more from the
           <a
-            href="https://www.airnow.gov/"
+            href="https://www.epa.gov/pm-pollution"
             target="_blank"
             rel="noopener noreferrer"
           >
-            AirNow </a
+            U.S. Environmental Protection Agency </a
           >.
         </p>
-      </section>
+  `
+},
 
-      <section class="about-section" id="sources">
-        <h2>Further reading</h2>
-        <ul>
-          <li>
-            <a
-              href="https://www.epa.gov/pm-pollution"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              U.S. EPA — Particulate Matter (PM) Pollution
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://www.airnow.gov/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              AirNow — Air Quality Information
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://www.who.int/health-topics/air-pollution"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              World Health Organization — Air Pollution
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://docs.timescale.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Timescale Documentation
-            </a>
-          </li>
-          <li>
-            <a
-                href="https://leafletjs.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-            >Leaflet</a>
-            — Open-source interactive maps, markers, and map controls.
-            </li>
-        </ul>
-      </section>
+
+
+
+  data: {
+    title: "Where Our Data Comes From",
+    text: `
+      <p><strong>Environmental Sensor Data Repository</strong></p>
+      <p>Our project retrieves sensor information and
+      particulate matter measurements through ESDR,
+      an environmental data platform developed by
+      Carnegie Mellon University's CREATE Lab.</p>
+
+      <p><strong>How the data reaches the dashboard:</strong></p>
+      <ul>
+        <li>Sensors collect measurements at specific locations.</li>
+        <li>ESDR provides access to available sensor data.</li>
+        <li>Our backend retrieves and stores readings.</li>
+        <li>Hourly summaries help power historical charts.</li>
+        <li>The dashboard displays readings on an interactive map.</li>
+      </ul>
+
+      <p>Not every sensor reports continuously, and coverage
+      differs between locations.</p>
+    `
+  },
+
+  tech: {
+    title: "Behind the Technology",
+    text: `
+      <p>Our dashboard combines several technologies:</p>
+      <ul>
+        <li><strong>HTML, CSS, JavaScript:</strong>
+        Build the interactive website.</li>
+        <li><strong>Leaflet:</strong>
+        Displays sensor locations on a map.</li>
+        <li><strong>D3.js:</strong>
+        Supports data visualizations.</li>
+        <li><strong>Python and Flask:</strong>
+        Handle API requests and backend processing.</li>
+        <li><strong>PostgreSQL + TimescaleDB:</strong>
+        Store and process time-series sensor measurements.</li>
+      </ul>
+
+      <p>Continuous aggregates organize measurements
+      into hourly and daily summaries, making
+      historical data easier to query.</p>
+    `
+  },
+
+  limits: {
+    title: "Understanding Limitations",
+    text: `
+      <p>Environmental data is useful, but understanding
+      its limitations is essential.</p>
+
+      <ul>
+        <li><strong>Uneven coverage:</strong>
+        Some areas have many sensors, while others have few.</li>
+        <li><strong>Missing data:</strong>
+        Sensors may temporarily stop reporting measurements.</li>
+        <li><strong>Measurement uncertainty:</strong>
+        Sensor quality, calibration, and environmental
+        conditions can affect readings.</li>
+        <li><strong>Local variation:</strong>
+        Nearby locations can experience different pollution
+        concentrations.</li>
+        <li><strong>Historical gaps:</strong>
+        Available historical readings may not cover
+        every hour or day.</li>
+      </ul>
+
+      <p>Use the dashboard to explore trends rather
+      than assuming a single reading describes
+      everyone's personal exposure.</p>
+    `
+  }
+};
+
+const expandedPanel =
+  document.getElementById("learnExpanded");
+
+const expandedContent =
+  document.getElementById("learnExpandedContent");
+
+let openTopic = null;
+
+document.querySelectorAll(".learn-more").forEach(button => {
+  button.addEventListener("click", () => {
+    const topic = button.dataset.topic;
+
+    // Cclicking same button will close the panel
+    if (openTopic === topic) {
+      expandedPanel.hidden = true;
+      openTopic = null;
+      return;
+    }
+
+    const info = learnInfo[topic];
+
+    expandedContent.innerHTML =
+      `<h3>${info.title}</h3>${info.text}`;
+
+    expandedPanel.hidden = false;
+    openTopic = topic;
+  });
+});
+
+document.getElementById("learnClose").onclick = () => {
+  expandedPanel.hidden = true;
+  openTopic = null;
+};
+
+</script>
+
+<!-- END INFORMATION CAROUSEL -->
+
 
     <a class="about-back" href="/">
         <span aria-hidden="true">←</span> Back to dashboard
