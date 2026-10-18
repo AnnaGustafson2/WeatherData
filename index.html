@@ -24,37 +24,32 @@
   </head>
 
   <body>
-    <header>
-      <div class="header-content">
-        <div class="brand">
-          
-<a class="brand-home" href="index.html" aria-label="Zephyra home">
-  <svg width="42" height="42" viewBox="0 0 48 48"
-       fill="none" xmlns="http://www.w3.org/2000/svg"
-       aria-hidden="true">
-    <path d="M6 17H32C41 17 41 6 34 6C30 6 28 9 28 12"
-          stroke="#367C69" stroke-width="3"
-          stroke-linecap="round"/>
-    <path d="M4 25H39C46 25 46 35 39 35C36 35 34 33 34 30"
-          stroke="#367C69" stroke-width="3"
-          stroke-linecap="round"/>
-    <path d="M9 33H23C31 33 31 43 24 43C21 43 19 41 19 38"
-          stroke="#78B5A0" stroke-width="3"
-          stroke-linecap="round"/>
-  </svg>
-</a>
+   
+<header>
+  <div class="header-content">
 
-          <div>
-            <h1>Zephyra</h1>
-            <p>Understand the air around you.</p>
-          </div>
-        </div>
+    <a class="brand-home" href="index.html" aria-label="Home">
+      <svg width="48" height="48" viewBox="0 0 64 64"
+           fill="none" stroke="#D6F1E1"
+           stroke-width="4" stroke-linecap="round">
+        <path d="M8 20 H43 Q55 20 55 10 Q55 2 46 4"/>
+        <path d="M5 32 H52 Q62 32 60 42 Q58 51 48 47"/>
+        <path d="M12 44 H33 Q43 44 42 53 Q41 60 34 58"/>
+      </svg>
+    </a>
 
-        <nav class="site-nav" aria-label="Main navigation">
-            <a href="about.html">About</a>
-        </nav>
-      </div>
-    </header>
+    <a  class="header-title">
+      <h1>Zephyra</h1>
+      <p>Your air, at a glance.</p>
+    </a>
+
+    <nav class="site-nav">
+      <a href="about.html">About ↗</a>
+    </nav>
+
+  </div>
+</header>
+
 
     <main>
       
@@ -71,10 +66,9 @@
     display: flex;
     align-items: center;
 
-    background: linear-gradient(120deg, #dcece3, #eaf4ef, #f3f8f5);
-    border: 2px solid #719c8b;
-    border-radius: 22px;
+   
   }
+
 
   .zephyra-hero-content {
     position: relative;
@@ -117,24 +111,7 @@
     opacity: 0.35;
   }
 
-  .zephyra-wind {
-    fill: none;
-    stroke: #5caa91;
-    stroke-width: 3;
-    stroke-linecap: round;
-    stroke-dasharray: 35 25;
-    animation: zephyraFlow 10s linear infinite;
-  }
 
-  .zephyra-wind:nth-child(2) {
-    animation-duration: 15s;
-    stroke: #367c69;
-  }
-
-  .zephyra-wind:nth-child(3) {
-    animation-duration: 7s;
-    stroke: #8ac8b2;
-  }
 
   .zephyra-particle {
     fill: #367c69;
@@ -163,13 +140,35 @@
 
   @media (prefers-reduced-motion: reduce) {
     .zephyra-hero-content,
-    .zephyra-wind {
-      animation: none;
-    }
+    .
   }
+
+  /* Background image or GIF */
+.hero-background {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0.25;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Keep text above image */
+.zephyra-hero-content {
+    position: relative;
+    z-index: 2;
+}
 </style>
 
 <section class="zephyra-hero">
+  <img
+  src="images/wind-farm.png"
+  class="hero-background"
+  alt=""
+>
 
   <!-- Background wind illustration -->
   <svg class="zephyra-hero-art"
@@ -177,15 +176,7 @@
        preserveAspectRatio="xMidYMid slice"
        aria-hidden="true">
 
-    <path class="zephyra-wind"
-      d="M -100 70 C 200 -60, 400 200, 650 70 S 1000 -30, 1150 70"/>
-
-    <path class="zephyra-wind"
-      d="M -100 150 C 170 10, 430 290, 680 150 S 1000 20, 1150 150"/>
-
-    <path class="zephyra-wind"
-      d="M -100 230 C 200 90, 440 370, 680 230 S 1000 100, 1150 230"/>
-
+    
     <!-- Floating particles -->
     <circle class="zephyra-particle" r="5">
       <animateMotion dur="18s" repeatCount="indefinite"
@@ -206,6 +197,7 @@
       <animateMotion dur="12s" repeatCount="indefinite"
         path="M -30 110 C 300 30, 700 220, 1050 100"/>
     </circle>
+    
 
   </svg>
 
@@ -222,6 +214,20 @@
       One breath at a time.
     </p>
   </div>
+  
+<a href="about.html" class="hero-learn-card">
+    <span class="hero-learn-icon">
+  <svg width="32" height="32" viewBox="0 0 64 64" fill="none"
+       stroke="#367c69" stroke-width="4" stroke-linecap="round">
+    <path d="M8 20 H43 Q55 20 55 10 Q55 2 46 4"/>
+    <path d="M5 32 H52 Q62 32 60 42 Q58 51 48 47"/>
+    <path d="M12 44 H33 Q43 44 42 53 Q41 60 34 58"/>
+  </svg>
+</span>
+    <strong>Curious about air quality?</strong>
+    <span>Learn more!</span>
+</a>
+
 
 </section>
 

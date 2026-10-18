@@ -385,6 +385,10 @@ def sync_favorites():
 
     return jsonify(success=True, count=len(cleaned))
 
+@app.route("/images/<path:filename>")
+def serve_images(filename):
+    return send_from_directory(os.path.join(HERE, "images"), filename)
+
 @app.get("/api/storage")
 def storage():
     """Table size and how much of it is in the columnstore (Tiger's compression)."""
