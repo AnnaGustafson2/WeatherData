@@ -285,7 +285,6 @@ function renderFavorites() {
 
   const favorites = getFavorites();
 
-
   for (const favorite of favorites) {
     const card = document.createElement("article");
     card.className = "favorite-card";
@@ -343,7 +342,13 @@ function renderFavorites() {
     const w = favorite.lon - dLon;
     const e = favorite.lon + dLon;
 
-    const cityMap = L.map(mapElement).setView([favorite.lat, favorite.lon], 10);
+    // Lock the map to this city's box so you can't pan or zoom away from it.
+    const cityBounds = L.latLngBounds([s, w], [n, e]);
+
+    const cityMap = L.map(mapElement, {
+      maxBounds: cityBounds.pad(0.1), // a little breathing room at the edges
+      maxBoundsViscosity: 1.0, // solid edge, no bouncing
+    });
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
@@ -352,8 +357,10 @@ function renderFavorites() {
 
     const cityLayer = L.featureGroup().addTo(cityMap);
 
-    // Leaflet needs to know the map's size after its card is inserted.
+    // Leaflet needs the map's size before it can fit the box, so do this first.
     cityMap.invalidateSize();
+    cityMap.fitBounds(cityBounds);
+    cityMap.setMinZoom(cityMap.getZoom()); // can't zoom out past the city
 
     async function loadFavoriteData() {
       const bounds = [s, w, n, e].map((v) => v.toFixed(3));
@@ -395,7 +402,6 @@ function renderFavorites() {
     loadFavoriteData();
   }
 
-  
   // Add City card appears after all saved cities
   const addCard = document.createElement("button");
   addCard.type = "button";
@@ -408,11 +414,12 @@ function renderFavorites() {
   `;
 
   addCard.onclick = () => {
-    document.getElementById("exploreSection")
+    document
+      .getElementById("exploreSection")
       .scrollIntoView({ behavior: "smooth" });
 
     document.getElementById("place").focus({
-      preventScroll: true
+      preventScroll: true,
     });
   };
 
@@ -961,7 +968,6 @@ async function drawFavoriteChart(chartElement, favorite) {
         .y((d) => y(d.avg)),
     );
 
-  
   // Hover targets and custom tooltip
   plot
     .selectAll(".hover-point")
@@ -986,16 +992,16 @@ async function drawFavoriteChart(chartElement, favorite) {
       const [px, py] = d3.pointer(event, chartElement);
 
       tooltip
-        .style("left", `${Math.max(4, Math.min(
-          px + 12,
-          chartElement.clientWidth - 194
-        ))}px`)
+        .style(
+          "left",
+          `${Math.max(4, Math.min(px + 12, chartElement.clientWidth - 194))}px`,
+        )
         .style("top", `${Math.max(4, py - 12)}px`)
         .text(
           `${d3.utcFormat("%b %d, %Y")(d.day)}\n` +
-          `Average: ${d.avg.toFixed(1)} µg/m³ (${bandFor(d.avg).label})\n` +
-          `Range: ${d.min.toFixed(1)}–${d.max.toFixed(1)} µg/m³\n` +
-          `${d.sensors} sensor${d.sensors === 1 ? "" : "s"}`
+            `Average: ${d.avg.toFixed(1)} µg/m³ (${bandFor(d.avg).label})\n` +
+            `Range: ${d.min.toFixed(1)}–${d.max.toFixed(1)} µg/m³\n` +
+            `${d.sensors} sensor${d.sensors === 1 ? "" : "s"}`,
         );
     })
     .on("pointerleave", function () {
