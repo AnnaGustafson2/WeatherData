@@ -13,16 +13,27 @@ Setup (once):
 Run:
     export DATABASE_URL='postgres://tsdbadmin:PASSWORD@HOST:PORT/tsdb?sslmode=require'
     python server.py
-    then open http://localhost:5000
+    then open http://localhost:5050
 
 The database password stays on this server and never reaches the browser.
 """
+from dotenv import load_dotenv
+
+load_dotenv()
+
+import resend
 import csv
 import io
 import os
 import threading
 import time
 import json
+
+import math
+import re
+import secrets
+import smtplib
+from email.message import EmailMessage
 
 import psycopg
 import requests
@@ -53,6 +64,47 @@ pool = ConnectionPool(os.environ["DATABASE_URL"], min_size=2, max_size=10,
 
 def db():
     return pool.connection()
+
+ALERT_EVERY_SECS = 1800      # how often to check
+MIN_SENSORS = 2              # don't alert from a single sensor
+PUBLIC_URL = os.environ.get("PUBLIC_URL", "http://localhost:5050")
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+alert_lock = threading.Lock()
+
+ALERT_SCHEMA = """
+CREATE TABLE IF NOT EXISTS alert_subscriptions (
+    id           SERIAL PRIMARY KEY,
+    email        TEXT NOT NULL,
+    city_label   TEXT NOT NULL,
+    lat          DOUBLE PRECISION NOT NULL,
+    lon          DOUBLE PRECISION NOT NULL,
+    threshold    DOUBLE PRECISION NOT NULL,
+    alerting     BOOLEAN NOT NULL DEFAULT false,
+    active       BOOLEAN NOT NULL DEFAULT true,
+    token        TEXT NOT NULL,
+    last_sent_at TIMESTAMPTZ,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (email, lat, lon)
+)"""
+
+# City PM2.5 = median across sensors of each sensor's 24 h average (same box as the city card).
+CHECK_QUERY = """
+SELECT s.id, s.email, s.city_label, s.threshold, s.alerting, s.token,
+       percentile_cont(0.5) WITHIN GROUP (ORDER BY a.avg24) AS city_pm25,
+       count(*) AS n_sensors
+FROM alert_subscriptions s
+JOIN LATERAL (
+    SELECT h.feed_id, avg(h.avg_value) AS avg24
+    FROM sensors se
+    JOIN hourly_readings h ON h.feed_id = se.feed_id
+    WHERE se.latitude  BETWEEN s.lat - 0.15 AND s.lat + 0.15
+      AND se.longitude BETWEEN s.lon - 0.15 / cos(radians(s.lat))
+                           AND s.lon + 0.15 / cos(radians(s.lat))
+      AND h.channel = 'PM2_5' AND h.hour >= now() - interval '24 hours'
+    GROUP BY h.feed_id
+) a ON true
+WHERE s.active
+GROUP BY s.id"""
 
 # One-time database setup. Every step is safe to repeat. They run one at a time
 # (outside a transaction, which Tiger Data requires for aggregates) and a failing
@@ -105,6 +157,7 @@ def setup_db():
     with db() as conn:
         conn.execute(SCHEMA)
         conn.execute("ALTER TABLE sensors ADD COLUMN IF NOT EXISTS loaded_at TIMESTAMPTZ")
+        conn.execute(ALERT_SCHEMA)
     with psycopg.connect(os.environ["DATABASE_URL"], autocommit=True) as conn:
         for sql in SETUP_STEPS:
             try:
@@ -435,6 +488,482 @@ def history():
 def about():
     return send_from_directory(HERE, "about.html")
 
+def band_name(v):
+    for top, name in ((9, "Good"), (35.4, "Moderate"), (55.4, "Unhealthy for sensitive groups"),
+                      (125.4, "Unhealthy"), (225.4, "Very unhealthy")):
+        if v <= top:
+            return name
+    return "Hazardous"
+
+
+
+import html
+import os
+import resend
+
+
+def make_email_html(title, preheader, content_html, button_url=None,
+                    button_text=None, footer_html=""):
+    """Build a consistent, responsive HTML email."""
+
+    button_html = ""
+    if button_url and button_text:
+        safe_url = html.escape(button_url, quote=True)
+        safe_text = html.escape(button_text)
+        button_html = f"""
+            <p style="margin: 28px 0;">
+                <a href="{safe_url}"
+                   style="display: inline-block; background: #A1EEBD;
+                          color: #173D32; text-decoration: none;
+                          font-weight: 700; padding: 13px 22px;
+                          border-radius: 8px;">
+                    {safe_text}
+                </a>
+            </p>
+        """
+
+    safe_title = html.escape(title)
+    safe_preheader = html.escape(preheader)
+
+    return f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{safe_title}</title>
+    </head>
+    <body style="margin: 0; padding: 0; background: #ECF5FD;
+                 font-family: Arial, Helvetica, sans-serif; color: #243746;">
+
+        <div style="display: none; max-height: 0; overflow: hidden;">
+            {safe_preheader}
+        </div>
+
+        <div style="padding: 32px 12px;">
+            <div style="max-width: 580px; margin: 0 auto;">
+
+                <div style="padding: 0 8px 18px; color: #315A70;
+                            font-size: 14px; font-weight: 700;
+                            letter-spacing: 1px;">
+                    AIR QUALITY
+                </div>
+
+                <div style="background: #FFFFFF; border-radius: 14px;
+                            padding: 30px 26px;
+                            border: 1px solid #D1E9F0;">
+
+                    <h1 style="font-size: 25px; line-height: 1.3;
+                               margin: 0 0 18px; color: #173D50;">
+                        {safe_title}
+                    </h1>
+
+                    {content_html}
+
+                    {button_html}
+
+                    <div style="border-top: 1px solid #E5EDF2;
+                                padding-top: 18px; margin-top: 28px;
+                                font-size: 12px; line-height: 1.6;
+                                color: #687D89;">
+                        {footer_html}
+                    </div>
+                </div>
+
+                <p style="text-align: center; font-size: 12px;
+                          color: #687D89; margin-top: 20px;">
+                    Air quality information to help you make informed decisions.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+
+def send_email(to, subject, body, html_body=None):
+    api_key = os.environ.get("RESEND_API_KEY")
+
+    if not api_key:
+        print(
+            f"\n--- EMAIL (Resend not configured) ---\n"
+            f"To: {to}\nSubject: {subject}\n\n{body}\n--- end ---\n"
+        )
+        return
+
+    resend.api_key = api_key
+
+    if html_body is None:
+        # Preserve compatibility with existing emails until we redesign them.
+        html_body = html.escape(body).replace("\n", "<br>\n")
+
+    resend.Emails.send({
+        "from": "Air Quality <onboarding@resend.dev>",
+        "to": [to],
+        "subject": subject,
+        "html": html_body,
+        "text": body,
+    })
+
+
+def unsub_line(token):
+    return f"\nStop these emails: {PUBLIC_URL}/api/alerts/unsubscribe?token={token}\n"
+
+
+def check_alerts():
+    """Refresh data for subscribed cities, then email anyone whose city just crossed their threshold."""
+    if not alert_lock.acquire(blocking=False):     # a check is already running
+        return
+    try:
+        with db() as conn:
+            spots = conn.execute(
+                "SELECT DISTINCT lat, lon FROM alert_subscriptions WHERE active").fetchall()
+        client = app.test_client()                 # reuses /api/region's download + refresh logic
+        for lat, lon in spots:
+            dlat, dlon = 0.15, 0.15 / math.cos(math.radians(lat))
+            client.get("/api/region", query_string={
+                "south": lat - dlat, "west": lon - dlon,
+                "north": lat + dlat, "east": lon + dlon, "compare": "0"})
+
+        with db() as conn:
+            rows = conn.execute(CHECK_QUERY).fetchall()
+            for sub_id, email, label, threshold, alerting, token, pm25, n in rows:
+                try:
+                    if n >= MIN_SENSORS and pm25 >= threshold and not alerting:
+                        
+                        safe_label = html.escape(label)
+                        category = band_name(pm25)
+                        safe_category = html.escape(category)
+                        safe_unsubscribe_url = html.escape(
+                            f"{PUBLIC_URL}/api/alerts/unsubscribe?token={token}",
+                            quote=True
+                        )
+
+                        # Short, practical guidance based on the estimated category.
+                        if pm25 <= 9:
+                            guidance = (
+                                "Air pollution is relatively low. Continue your "
+                                "usual activities while following local guidance."
+                            )
+                        elif pm25 <= 35.4:
+                            guidance = (
+                                "Pollution is elevated. If you are unusually "
+                                "sensitive to air pollution, consider how you feel "
+                                "during prolonged outdoor activity."
+                            )
+                        elif pm25 <= 55.4:
+                            guidance = (
+                                "People who are more sensitive to air pollution "
+                                "may want to reduce prolonged or strenuous outdoor "
+                                "activity, especially if symptoms occur."
+                            )
+                        elif pm25 <= 125.4:
+                            guidance = (
+                                "Consider reducing prolonged or strenuous outdoor "
+                                "activity. Sensitive groups should take extra care "
+                                "and follow local public-health advice."
+                            )
+                        else:
+                            guidance = (
+                                "Air pollution is very high. Consider avoiding "
+                                "outdoor exertion and follow local public-health "
+                                "advice for protective actions."
+                            )
+
+                        safe_guidance = html.escape(guidance)
+
+                        alert_html = make_email_html(
+                            title=f"Air quality alert for {label}",
+                            preheader=(
+                                f"Estimated 24-hour PM2.5 is {pm25:.1f} µg/m³ "
+                                f"in {label}."
+                            ),
+                            content_html=f"""
+                                <p style="font-size: 16px; line-height: 1.7;">
+                                    The estimated PM2.5 level near
+                                    <strong>{safe_label}</strong> has reached
+                                    your alert threshold.
+                                </p>
+
+                                <div style="background: #FFF5E8;
+                                            border: 1px solid #F0D8B5;
+                                            border-radius: 12px;
+                                            padding: 22px; margin: 22px 0;">
+                                    <p style="margin: 0 0 8px; color: #78552A;
+                                              font-size: 13px; font-weight: 700;
+                                              text-transform: uppercase;">
+                                        Estimated 24-hour PM2.5
+                                    </p>
+                                    <p style="font-size: 38px; line-height: 1.2;
+                                              font-weight: 700; color: #75451B;
+                                              margin: 0;">
+                                        {pm25:.1f}
+                                        <span style="font-size: 15px;
+                                                     font-weight: 400;">
+                                            µg/m³
+                                        </span>
+                                    </p>
+                                    <p style="margin: 12px 0 0;">
+                                        <span style="display: inline-block;
+                                                     background: #FFFFFF;
+                                                     border-radius: 20px;
+                                                     padding: 6px 12px;
+                                                     font-size: 13px;
+                                                     font-weight: 700;
+                                                     color: #75451B;">
+                                            {safe_category}
+                                        </span>
+                                    </p>
+                                </div>
+
+                                <table role="presentation" width="100%"
+                                       style="border-collapse: collapse;
+                                              font-size: 14px;">
+                                    <tr>
+                                        <td style="padding: 12px 0;
+                                                   border-bottom: 1px solid #E5EDF2;
+                                                   color: #687D89;">
+                                            Your threshold
+                                        </td>
+                                        <td style="padding: 12px 0;
+                                                   border-bottom: 1px solid #E5EDF2;
+                                                   text-align: right;
+                                                   font-weight: 700;">
+                                            {threshold:g} µg/m³
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 12px 0;
+                                                   border-bottom: 1px solid #E5EDF2;
+                                                   color: #687D89;">
+                                            Sensors included
+                                        </td>
+                                        <td style="padding: 12px 0;
+                                                   border-bottom: 1px solid #E5EDF2;
+                                                   text-align: right;
+                                                   font-weight: 700;">
+                                            {n}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 12px 0;
+                                                   color: #687D89;">
+                                            Measurement window
+                                        </td>
+                                        <td style="padding: 12px 0;
+                                                   text-align: right;
+                                                   font-weight: 700;">
+                                            Previous 24 hours
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div style="background: #ECF5FD;
+                                            border-radius: 10px;
+                                            padding: 18px; margin-top: 24px;">
+                                    <h2 style="font-size: 17px; margin: 0 0 8px;
+                                               color: #173D50;">
+                                        What you can do
+                                    </h2>
+                                    <p style="font-size: 14px; line-height: 1.7;
+                                              margin: 0;">
+                                        {safe_guidance}
+                                    </p>
+                                </div>
+
+                                <p style="font-size: 12px; line-height: 1.7;
+                                          color: #687D89; margin-top: 20px;">
+                                    This estimate is the median of nearby
+                                    sensor-level 24-hour averages. It may differ
+                                    from official AQI reports. Sensor data can be
+                                    incomplete or delayed; check official local
+                                    air-quality guidance for health decisions.
+                                </p>
+                            """,
+                            button_url=PUBLIC_URL,
+                            button_text="View the air quality map",
+                            footer_html=f"""
+                                You're receiving this because you enabled
+                                air quality alerts for {safe_label}.
+                                <br><br>
+                                <a href="{safe_unsubscribe_url}"
+                                   style="color: #315A70;">
+                                    Unsubscribe from these alerts
+                                </a>
+                            """
+                        )
+
+                        alert_text = (
+                            f"Air quality alert for {label}\\n\\n"
+                            f"Estimated 24-hour PM2.5: {pm25:.1f} µg/m³\\n"
+                            f"Category: {category}\\n"
+                            f"Your threshold: {threshold:g} µg/m³\\n"
+                            f"Sensors included: {n}\\n\\n"
+                            f"What you can do: {guidance}\\n\\n"
+                            "This is an estimate based on the median of nearby "
+                            "sensor-level 24-hour averages. Sensor data may be "
+                            "incomplete or delayed; consult official local "
+                            "guidance for health decisions.\\n\\n"
+                            f"View the map: {PUBLIC_URL}\\n"
+                            f"Unsubscribe: {PUBLIC_URL}/api/alerts/unsubscribe"
+                            f"?token={token}"
+                        )
+
+                        send_email(
+                            email,
+                            f"Air quality alert: {label} — {category}",
+                            alert_text,
+                            html_body=alert_html
+                        )
+
+                        conn.execute("UPDATE alert_subscriptions SET alerting = true, "
+                                     "last_sent_at = now() WHERE id = %s", (sub_id,))
+                    elif alerting and pm25 < threshold * 0.9:
+                        conn.execute("UPDATE alert_subscriptions SET alerting = false WHERE id = %s",
+                                     (sub_id,))
+                except Exception:
+                    app.logger.exception("alert for subscription %s failed", sub_id)
+    finally:
+        alert_lock.release()
+
+
+def alert_loop():
+    time.sleep(60)                                 # let the server finish starting
+    while True:
+        try:
+            check_alerts()
+        except Exception:
+            app.logger.exception("alert check failed")
+        time.sleep(ALERT_EVERY_SECS)
+
+
+@app.post("/api/alerts")
+def subscribe_alert():
+    d = request.get_json(silent=True) or {}
+    email = str(d.get("email", "")).strip().lower()
+    label = str(d.get("label", "")).strip()
+    try:
+        lat, lon, threshold = round(float(d["lat"]), 4), round(float(d["lon"]), 4), float(d["threshold"])
+    except (KeyError, TypeError, ValueError):
+        return jsonify(error="Need a city and an alert level."), 400
+    if not EMAIL_RE.match(email) or len(email) > 254:
+        return jsonify(error="Enter a valid email address."), 400
+    if not label or not (-90 <= lat <= 90 and -180 <= lon <= 180) or not (1 <= threshold <= 500):
+        return jsonify(error="Invalid city or alert level."), 400
+
+    token = secrets.token_urlsafe(16)
+    with db() as conn:
+        token = conn.execute(
+            """INSERT INTO alert_subscriptions (email, city_label, lat, lon, threshold, token)
+               VALUES (%s, %s, %s, %s, %s, %s)
+               ON CONFLICT (email, lat, lon) DO UPDATE
+               SET threshold = EXCLUDED.threshold, city_label = EXCLUDED.city_label,
+                   active = true, alerting = false
+               RETURNING token""", (email, label, lat, lon, threshold, token)).fetchone()[0]
+
+    def follow_up():
+        try:
+            
+            safe_label = html.escape(label)
+            safe_threshold = f"{threshold:g}"
+            unsubscribe_url = (
+                f"{PUBLIC_URL}/api/alerts/unsubscribe?token={token}"
+            )
+            safe_unsubscribe_url = html.escape(unsubscribe_url, quote=True)
+
+            welcome_html = make_email_html(
+                title=f"You're all set for {label}!",
+                preheader=f"Your PM2.5 alerts are now enabled for {label}.",
+                content_html=f"""
+                    <p style="font-size: 16px; line-height: 1.7;">
+                        You're subscribed to air quality alerts for
+                        <strong>{safe_label}</strong>.
+                    </p>
+
+                    <div style="background: #ECF5FD; border: 1px solid #D1E9F0;
+                                border-radius: 12px; padding: 20px;
+                                margin: 22px 0;">
+                        <p style="margin: 0 0 8px; color: #526D7A;
+                                  font-size: 13px; font-weight: 700;
+                                  text-transform: uppercase;">
+                            Your alert threshold
+                        </p>
+                        <p style="font-size: 30px; font-weight: 700;
+                                  color: #173D50; margin: 0;">
+                            {safe_threshold}
+                            <span style="font-size: 15px; font-weight: 400;">
+                                µg/m³
+                            </span>
+                        </p>
+                        <p style="font-size: 14px; line-height: 1.6;
+                                  margin: 10px 0 0; color: #526D7A;">
+                            We'll email you when the 24-hour PM2.5 level
+                            reaches or exceeds your chosen threshold.
+                        </p>
+                    </div>
+
+                    <h2 style="font-size: 18px; color: #173D50;">
+                        What to expect
+                    </h2>
+                    <ul style="font-size: 15px; line-height: 1.8;
+                               padding-left: 22px;">
+                        <li>We estimate local conditions using nearby outdoor sensors.</li>
+                        <li>Alerts use the median of sensor-level 24-hour averages.</li>
+                        <li>When pollution falls sufficiently below your threshold,
+                            the alert can reset for a future increase.</li>
+                    </ul>
+
+                    <p style="font-size: 14px; line-height: 1.7; color: #526D7A;">
+                        Sensor coverage and data availability vary by location.
+                        These estimates are informative and may not match official
+                        regulatory monitoring or real-time conditions exactly.
+                    </p>
+                """,
+                button_url=PUBLIC_URL,
+                button_text="Explore the air quality map",
+                footer_html=f"""
+                    You can change your alert settings by subscribing again
+                    for the same city with a different threshold.
+                    <br><br>
+                    <a href="{safe_unsubscribe_url}"
+                       style="color: #315A70;">Unsubscribe from these alerts</a>
+                """
+            )
+
+            welcome_text = (
+                f"You're subscribed to air quality alerts for {label}.\\n\\n"
+                f"Alert threshold: {threshold:g} µg/m³.\\n"
+                f"We'll email you when the 24-hour PM2.5 level reaches or "
+                f"exceeds this threshold. Estimates use the median of nearby "
+                f"sensor-level 24-hour averages, and sensor coverage varies.\\n\\n"
+                f"View the map: {PUBLIC_URL}\\n"
+                f"Unsubscribe: {unsubscribe_url}"
+            )
+
+            send_email(
+                email,
+                f"Air quality alerts are on for {label}",
+                welcome_text,
+                html_body=welcome_html
+            )
+
+            check_alerts()                         # so a low test threshold fires right away
+        except Exception:
+            app.logger.exception("welcome email failed")
+    threading.Thread(target=follow_up, daemon=True).start()
+    return jsonify(success=True)
+
+
+@app.get("/api/alerts/unsubscribe")
+def unsubscribe_alert():
+    token = request.args.get("token", "")
+    with db() as conn:
+        n = conn.execute("UPDATE alert_subscriptions SET active = false WHERE token = %s",
+                         (token,)).rowcount
+    return ("You're unsubscribed. No more alert emails." if n
+            else "That link isn't valid."), 200 if n else 404
+
 if __name__ == "__main__":
     setup_db()
+    threading.Thread(target=alert_loop, daemon=True).start()
     app.run(port=5050, threaded=True)
