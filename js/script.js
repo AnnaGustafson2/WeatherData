@@ -1,20 +1,80 @@
-// PM2.5 color bands (US EPA AQI breakpoints, µg/m³)
+// PM2.5 color bands: US EPA breakpoints (µg/m³, 24-hour average) and the official EPA AQI colors.
+// `color` is the official fill; `key` matches the [data-band] styles in styles.css,
+// which also define a darker text shade and a pale background for each band.
 const BANDS = [
-  { max: 9, color: "#00e400", label: "Good", range: "0–9" },
-  { max: 35.4, color: "#ffff00", label: "Moderate", range: "9–35" },
+  { key: "good", max: 9, color: "#00e400", label: "Good", range: "0–9", aqi: "0–50" },
+  { key: "moderate", max: 35.4, color: "#ffff00", label: "Moderate", range: "9–35", aqi: "51–100" },
   {
+    key: "usg",
     max: 55.4,
     color: "#ff7e00",
     label: "Unhealthy for sensitive groups",
     range: "35–55",
+    aqi: "101–150",
   },
-  { max: 125.4, color: "#ff0000", label: "Unhealthy", range: "55–125" },
-  { max: 225.4, color: "#8f3f97", label: "Very unhealthy", range: "125–225" },
-  { max: Infinity, color: "#7e0023", label: "Hazardous", range: "225+" },
+  { key: "unhealthy", max: 125.4, color: "#ff0000", label: "Unhealthy", range: "55–125", aqi: "151–200" },
+  { key: "very", max: 225.4, color: "#8f3f97", label: "Very unhealthy", range: "125–225", aqi: "201–300" },
+  { key: "hazardous", max: Infinity, color: "#7e0023", label: "Hazardous", range: "225+", aqi: "301+" },
 ];
-const NO_DATA = "#999999";
+const NO_DATA = "#9aa39d";
 const bandFor = (v) => BANDS.find((b) => v <= b.max);
 const HOUR = 3600 * 1000;
+
+// Small inline icons (same rounded-stroke style as the wind logo)
+const ICONS = {
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></svg>',
+};
+
+// A colored chip like "● Moderate" (color is never the only signal: the word is always there)
+function aqiChip(value, text) {
+  const chip = document.createElement("span");
+  chip.className = "aqi-chip";
+  if (value == null) {
+    chip.textContent = text || "No recent data";
+    return chip;
+  }
+  const b = bandFor(value);
+  chip.dataset.band = b.key;
+  chip.textContent = text || b.label;
+  return chip;
+}
+
+// Fetch JSON from our Flask API. If we get a web page back instead (the page was opened
+// without server.py, e.g. by double-clicking index.html or with VS Code Live Server),
+// say how to fix it instead of showing "Unexpected token '<'".
+async function fetchJSON(url, options) {
+  let resp;
+  try {
+    resp = await fetch(url, options);
+  } catch (err) {
+    throw new Error("can't reach the Zephora server. Is python server.py running?");
+  }
+  const type = resp.headers.get("content-type") || "";
+  if (!type.includes("application/json")) {
+    throw new Error(
+      resp.status === 404 || type.includes("text/html")
+        ? "the Zephora server isn't answering. Run python server.py and open http://localhost:5050"
+        : `unexpected reply from the server (${resp.status})`,
+    );
+  }
+  const body = await resp.json();
+  if (!resp.ok) throw new Error(body.error || `server error ${resp.status}`);
+  return body;
+}
+
+// "Washington, District of Columbia" reads better as "Washington, DC"
+const shortLabel = (label) => label.replace(", District of Columbia", ", DC");
+// Title for the hero card ("Right now in …")
+const heroLabel = (label) => (label === "this map view" ? "The area on your map" : shortLabel(label));
+
+// Median is what the email alerts use too, so one broken sensor can't skew a city.
+function median(values) {
+  if (!values.length) return null;
+  const v = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(v.length / 2);
+  return v.length % 2 ? v[mid] : (v[mid - 1] + v[mid]) / 2;
+}
 
 const saveFavoriteBtn = document.getElementById("saveFavorite");
 const favoritesList = document.getElementById("favorites");
@@ -42,14 +102,30 @@ const legend = L.control({ position: "bottomright" });
 legend.onAdd = () => {
   const div = L.DomUtil.create("div", "legend");
   div.innerHTML =
-    "<strong>PM2.5, 24 h average (µg/m³)</strong><br>" +
+    "<strong>Air quality (PM2.5)</strong>" +
+    '<span class="legend-sub">24-hour average, µg/m³</span>' +
     BANDS.map(
-      (b) => `<i style="background:${b.color}"></i>${b.range} ${b.label}`,
-    ).join("<br>") +
-    `<br><i style="background:${NO_DATA}"></i>No data in last 24 h`;
+      (b) =>
+        `<div class="legend-row"><i style="background:${b.color}"></i><span>${b.range}</span><span>${b.label}</span></div>`,
+    ).join("") +
+    `<div class="legend-row"><i style="background:${NO_DATA}"></i><span>–</span><span>No recent data</span></div>`;
   return div;
 };
 legend.addTo(map);
+
+// "Search this area" appears only after the person moves the map themselves.
+let movingByCode = false;
+let mapTarget = null; // last area the map was asked to show
+function moveMapTo(bounds) {
+  mapTarget = bounds;
+  movingByCode = true;
+  map.fitBounds(bounds);
+  // fitBounds may not fire moveend if nothing changes, so clear the flag either way
+  setTimeout(() => (movingByCode = false), 600);
+}
+map.on("moveend", () => {
+  if (!movingByCode) loadBtn.hidden = false;
+});
 
 // ---- City search with autocomplete (top ~1000 US cities + ~550 big cities worldwide; [name, lat, lon, population, alsoKnownAs?]) ----
 const norm = (s) =>
@@ -120,7 +196,7 @@ function alertControls(favorite) {
   details.className = "favorite-alerts";
   details.innerHTML = `
         <summary>
-            <span class="alerts-icon" aria-hidden="true">🔔</span>
+            <span class="alerts-icon" aria-hidden="true">${ICONS.bell}</span>
             <span class="alerts-summary">
                 <strong>Email alerts</strong>
                 <span class="alerts-subtitle"></span>
@@ -188,7 +264,7 @@ function alertControls(favorite) {
     status.className = "alert-status";
     status.textContent = "Saving…";
     try {
-      const resp = await fetch("/api/alerts", {
+      await fetchJSON("/api/alerts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -199,8 +275,6 @@ function alertControls(favorite) {
           threshold: Number(level.value),
         }),
       });
-      const body = await resp.json();
-      if (!resp.ok) throw new Error(body.error || resp.status);
       const addr = email.value.trim();
       localStorage.setItem("airQualityAlertEmail", addr);
       setAlertSub(key, { email: addr, threshold: Number(level.value) });
@@ -267,31 +341,52 @@ function isFavorite(p) {
 function updateSaveButton() {
   if (!selectedPlace) {
     saveFavoriteBtn.disabled = true;
-    saveFavoriteBtn.textContent = "☆ Save favorite";
+    saveFavoriteBtn.textContent = "☆ Save to your cities";
+    saveFavoriteBtn.title = "Search for a city first, then save it";
     return;
   }
 
   if (isFavorite(selectedPlace)) {
     saveFavoriteBtn.disabled = true;
-    saveFavoriteBtn.textContent = "★ Already saved";
+    saveFavoriteBtn.textContent = "★ Saved";
+    saveFavoriteBtn.title = `${selectedPlace.label} is already in your cities`;
   } else {
     saveFavoriteBtn.disabled = false;
-    saveFavoriteBtn.textContent = "☆ Save favorite";
+    saveFavoriteBtn.textContent = `☆ Save ${shortLabel(selectedPlace.label).split(",")[0]}`;
+    saveFavoriteBtn.title = `Add ${selectedPlace.label} to your cities`;
   }
 }
 
+// Small maps on the city cards, so they can be resized when their tab becomes visible
+let cityMaps = [];
+function fitCityMap({ map: m, bounds }) {
+  if (!m.getContainer().offsetWidth) return; // hidden tab: try again when it opens
+  m.invalidateSize();
+  m.setMinZoom(0);
+  m.fitBounds(bounds);
+  m.setMinZoom(m.getZoom()); // can't zoom out past the city
+}
+
 function renderFavorites() {
+  for (const { map: m } of cityMaps) m.remove();
+  cityMaps = [];
   favoritesList.replaceChildren();
 
   const favorites = getFavorites();
-
+  updateCitiesCount(favorites.length);
+  document.getElementById("emptyCities").hidden = favorites.length > 0;
+  favoritesList.hidden = favorites.length === 0;
 
   for (const favorite of favorites) {
     const card = document.createElement("article");
     card.className = "favorite-card";
 
+    const head = document.createElement("div");
+    head.className = "favorite-head";
     const heading = document.createElement("h3");
-    heading.textContent = favorite.label;
+    heading.textContent = shortLabel(favorite.label);
+    const headChip = aqiChip(null, "Loading…");
+    head.append(heading, headChip);
 
     const content = document.createElement("div");
     content.className = "favorite-content";
@@ -310,12 +405,17 @@ function renderFavorites() {
 
     const openButton = document.createElement("button");
     openButton.type = "button";
-    openButton.textContent = "Open in main map";
-    openButton.onclick = () => choose(favorite);
+    openButton.textContent = "Open on map";
+    openButton.onclick = () => {
+      selectTab("explore");
+      choose(favorite);
+    };
 
     const removeButton = document.createElement("button");
     removeButton.type = "button";
+    removeButton.className = "remove-city";
     removeButton.textContent = "Remove";
+    removeButton.setAttribute("aria-label", `Remove ${favorite.label}`);
     removeButton.onclick = () => {
       const updated = getFavorites().filter(
         (f) =>
@@ -333,7 +433,7 @@ function renderFavorites() {
     };
 
     actions.append(openButton, removeButton);
-    card.append(heading, content, actions, alertControls(favorite));
+    card.append(head, content, actions, alertControls(favorite));
     favoritesList.append(card);
 
     const dLat = 0.15;
@@ -343,7 +443,13 @@ function renderFavorites() {
     const w = favorite.lon - dLon;
     const e = favorite.lon + dLon;
 
-    const cityMap = L.map(mapElement).setView([favorite.lat, favorite.lon], 10);
+    // Lock the map to this city's box so you can't pan or zoom away from it.
+    const cityBounds = L.latLngBounds([s, w], [n, e]);
+
+    const cityMap = L.map(mapElement, {
+      maxBounds: cityBounds.pad(0.1), // a little breathing room at the edges
+      maxBoundsViscosity: 1.0, // solid edge, no bouncing
+    });
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
@@ -352,8 +458,11 @@ function renderFavorites() {
 
     const cityLayer = L.featureGroup().addTo(cityMap);
 
-    // Leaflet needs to know the map's size after its card is inserted.
-    cityMap.invalidateSize();
+    // Leaflet needs the map's real size before it can fit the box. If the
+    // "Your cities" tab is hidden right now, this runs again when it opens.
+    const entry = { map: cityMap, bounds: cityBounds };
+    cityMaps.push(entry);
+    fitCityMap(entry);
 
     async function loadFavoriteData() {
       const bounds = [s, w, n, e].map((v) => v.toFixed(3));
@@ -371,17 +480,17 @@ function renderFavorites() {
             compare: "0",
           });
 
-          const response = await fetch("/api/region?" + q);
-          data = await response.json();
-
-          if (!response.ok) {
-            throw new Error(data.error || response.status);
-          }
+          data = await fetchJSON("/api/region?" + q);
 
           setCachedData(cacheKey, data);
         }
 
-        show(data, favorite.label, cityLayer, false);
+        const summary = show(data, favorite.label, cityLayer, false);
+        const chip = aqiChip(
+          summary.median,
+          summary.median == null ? undefined : `${summary.median.toFixed(1)} · ${bandFor(summary.median).label}`,
+        );
+        headChip.replaceWith(chip);
       } catch (err) {
         console.error("Could not load favorite city " + favorite.label, err);
 
@@ -395,26 +504,18 @@ function renderFavorites() {
     loadFavoriteData();
   }
 
-  
   // Add City card appears after all saved cities
   const addCard = document.createElement("button");
   addCard.type = "button";
   addCard.className = "add-city-card";
 
   addCard.innerHTML = `
-    <span class="add-city-icon">＋</span>
+    <span class="add-city-icon">${ICONS.plus}</span>
     <strong>Add a city</strong>
-    <span>Explore another location</span>
+    <span>Search for it on the map, then save it</span>
   `;
 
-  addCard.onclick = () => {
-    document.getElementById("exploreSection")
-      .scrollIntoView({ behavior: "smooth" });
-
-    document.getElementById("place").focus({
-      preventScroll: true
-    });
-  };
+  addCard.onclick = () => goFindCity();
 
   favoritesList.append(addCard);
 
@@ -512,7 +613,7 @@ function choose(p) {
     n = p.lat + dLat,
     w = p.lon - dLon,
     e = p.lon + dLon;
-  map.fitBounds([
+  moveMapTo([
     [s, w],
     [n, e],
   ]);
@@ -532,7 +633,9 @@ saveFavoriteBtn.onclick = () => {
   if (saveFavorites(favorites)) {
     renderFavorites();
     updateSaveButton();
-    setStatus(selectedPlace.label + " saved to favorites.");
+    setStatus(
+      `${shortLabel(selectedPlace.label)} saved. It's now in Your cities, with a year of history and alerts.`,
+    );
   }
 };
 
@@ -572,6 +675,8 @@ placeInput.addEventListener("keydown", (ev) => {
 loadBtn.onclick = () => {
   const b = map.getBounds();
   placeInput.value = "";
+  selectedPlace = null;
+  updateSaveButton();
   loadArea(
     b.getSouth(),
     b.getWest(),
@@ -623,6 +728,8 @@ function setCachedData(key, data) {
 async function loadArea(s, w, n, e, label) {
   const myId = ++requestId;
   loadBtn.disabled = placeInput.disabled = true;
+  loadBtn.textContent = "Searching…";
+  setNowLoading(label);
 
   // Round bounds so tiny coordinate differences don't create separate cache entries.
   const bounds = [s, w, n, e].map((v) => v.toFixed(3));
@@ -640,35 +747,81 @@ async function loadArea(s, w, n, e, label) {
     }
 
     setStatus(
-      `Loading ${label}… the first time an area is loaded this can take a minute.`,
+      `Loading ${shortLabel(label)}… the first time an area is loaded this can take a minute.`,
     );
 
+    // compare=1 also times the raw-table query, for the Tiger Data stats under the map
     const q = new URLSearchParams({
       south: s,
       west: w,
       north: n,
       east: e,
-      compare: "0",
+      compare: "1",
     });
 
-    const resp = await fetch("/api/region?" + q);
-    const d = await resp.json();
-
-    if (!resp.ok) throw new Error(d.error || resp.status);
+    const d = await fetchJSON("/api/region?" + q);
     if (myId !== requestId) return;
 
     setCachedData(cacheKey, d);
     show(d, label);
   } catch (err) {
     if (myId === requestId) {
-      setStatus("Couldn't load " + label + ": " + err.message, true);
+      setStatus("Couldn't load " + shortLabel(label) + ": " + err.message, true);
+      setNowError(label);
     }
     console.error(err);
   } finally {
     if (myId === requestId) {
       loadBtn.disabled = placeInput.disabled = false;
+      loadBtn.textContent = "↻ Search this area";
+      loadBtn.hidden = true;
     }
   }
+}
+
+// ---- The live "right now" card in the hero ----
+const nowCard = document.getElementById("nowCard");
+const nowPlace = document.getElementById("nowPlace");
+const nowValue = document.getElementById("nowValue");
+const nowMeta = document.getElementById("nowMeta");
+
+function setNowLoading(label) {
+  nowCard.classList.add("is-loading");
+  delete nowCard.dataset.band;
+  nowPlace.textContent = heroLabel(label);
+  nowValue.textContent = "–";
+  const chip = aqiChip(null, "Checking sensors…");
+  chip.id = "nowBand";
+  document.getElementById("nowBand").replaceWith(chip);
+  nowMeta.textContent = "Fetching the latest readings from nearby outdoor sensors.";
+}
+
+function setNowError(label) {
+  nowCard.classList.remove("is-loading");
+  nowPlace.textContent = heroLabel(label);
+  nowMeta.textContent = "We couldn't reach the sensors just now. Try again in a moment.";
+}
+
+function setNow(summary, label) {
+  nowCard.classList.remove("is-loading");
+  nowPlace.textContent = heroLabel(label);
+  const chip = aqiChip(summary.median);
+  chip.id = "nowBand";
+  document.getElementById("nowBand").replaceWith(chip);
+
+  if (summary.median == null) {
+    delete nowCard.dataset.band;
+    nowValue.textContent = "–";
+    nowMeta.textContent = "No outdoor sensors here reported in the last 24 hours.";
+    return;
+  }
+  nowCard.dataset.band = bandFor(summary.median).key;
+  nowValue.textContent = summary.median.toFixed(1);
+  const mins = Math.max(0, Math.round((Date.now() - summary.latest) / 60000));
+  const ago = mins < 60 ? `${mins} min ago` : `${Math.round(mins / 60)} h ago`;
+  nowMeta.textContent =
+    `Median 24-hour average of ${summary.reporting} sensor${summary.reporting === 1 ? "" : "s"}. ` +
+    `Latest reading ${ago}.`;
 }
 
 function show(d, label, targetLayer = layer, updateUI = true) {
@@ -685,6 +838,7 @@ function show(d, label, targetLayer = layer, updateUI = true) {
     byFeed.get(r.feed_id).push({ t, v: r.avg });
   }
   const cutoff = latest - 24 * HOUR;
+  const averages = [];
 
   for (const s of d.sensors) {
     const rows = byFeed.get(s.feed_id) || [];
@@ -692,90 +846,108 @@ function show(d, label, targetLayer = layer, updateUI = true) {
     const avg = lastDay.length
       ? lastDay.reduce((a, r) => a + r.v, 0) / lastDay.length
       : null;
+    if (avg !== null) averages.push(avg);
     L.circleMarker([s.latitude, s.longitude], {
-      radius: 6,
-      weight: 1,
-      color: "#35664A",
-      fillOpacity: 0.9,
+      radius: 7,
+      weight: 1.5,
+      color: "rgba(20, 40, 28, 0.55)", // dark outline keeps yellow dots visible on the map
+      fillOpacity: 0.95,
       fillColor: avg === null ? NO_DATA : bandFor(avg).color,
     })
       .bindPopup(() => popupFor(s, rows, avg), { minWidth: 320, maxWidth: 360 })
-      .bindTooltip(avg === null ? s.name : `${s.name}: ${avg.toFixed(1)}`)
+      .bindTooltip(
+        avg === null
+          ? `${s.name}: no recent data`
+          : `${s.name}: ${avg.toFixed(1)} µg/m³ · ${bandFor(avg).label}`,
+      )
       .addTo(targetLayer);
   }
 
+  const summary = { median: median(averages), reporting: averages.length, latest };
+
   let msg = d.sensors.length
-    ? `${d.sensors.length} sensors in ${label}. Each dot is the average of the 24 hours ending ` +
-      `${new Date(latest).toLocaleString()}. Click a dot for its history.`
-    : `No active outdoor PM2.5 sensors found in ${label}. Try a bigger area.`;
+    ? `${d.sensors.length} sensors in ${shortLabel(label)}, colored by their 24-hour average up to ` +
+      `${new Date(latest).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}.`
+    : `No active outdoor PM2.5 sensors found in ${shortLabel(label)}. Try a bigger area.`;
   if (d.truncated)
     msg += ` Showing the first ${d.sensors.length} of ${d.total_found}; zoom in to see the rest.`;
   if (updateUI) {
     setStatus(msg);
-    showPerf(d.perf);
-    refreshStorage();
+    setNow(summary, label);
+    showStats(d.perf);
   }
+  return summary;
 }
 
-// Timing of the chart query: pre-computed continuous aggregate vs the raw table
-function showPerf(p) {
-  const el = document.getElementById("perf");
-  if (!p) {
-    el.hidden = true;
-    return;
-  }
-  let t =
-    `Chart data served in ${p.agg_ms} ms from the hourly continuous aggregate ` +
-    `(${p.raw_rows.toLocaleString()} raw readings rolled up into ${p.hourly_rows.toLocaleString()} hourly rows).`;
-  if (p.raw_ms != null) {
-    t += ` The same query on the raw table took ${p.raw_ms} ms`;
-    t +=
-      p.raw_ms >= p.agg_ms * 1.5
-        ? ` (${(p.raw_ms / p.agg_ms).toFixed(1)}× slower).`
-        : ".";
-  }
-  if (p.loaded_sensors)
-    t += ` Downloaded ${p.loaded_sensors} new sensors in ${p.load_secs} s.`;
-  el.textContent = t;
-  el.hidden = false;
+// ---- "Powered by Tiger Data" stats under the map ----
+// Query speed (continuous aggregate vs raw table) from /api/region, storage from /api/storage.
+let lastPerf = null;
+
+function fmtCount(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+  if (n >= 1e3) return Math.round(n / 1e3) + "k";
+  return String(n);
 }
 
-// How big the readings table is, and how much of it Tiger's columnstore has compressed
-async function refreshStorage() {
-  const el = document.getElementById("storage");
+async function showStats(perf) {
+  if (perf) lastPerf = perf;
+  const p = lastPerf;
+  let s = null;
   try {
-    const s = await (await fetch("/api/storage")).json();
-    const mb = (b) => (b / 1048576).toFixed(1) + " MB";
-    let t =
-      "Database: " +
-      (s.rows > 0 ? `about ${s.rows.toLocaleString()} readings, ` : "") +
-      (s.total_bytes != null ? `${mb(s.total_bytes)} on disk. ` : "");
-    if (s.compressed_chunks > 0 && s.before_bytes && s.after_bytes)
-      t +=
-        `${s.compressed_chunks} of ${s.total_chunks} chunks are in the columnstore: ` +
-        `${mb(s.before_bytes)} → ${mb(s.after_bytes)} (${(s.before_bytes / s.after_bytes).toFixed(1)}× smaller).`;
-    else
-      t +=
-        "No chunks are in the columnstore yet. Chunks compress once they are 2 days old.";
-    el.textContent = t;
-    el.hidden = false;
+    s = await (await fetch("/api/storage")).json();
   } catch (err) {
-    el.hidden = true;
+    /* storage numbers are optional */
   }
+
+  const stats = [];
+  if (p) {
+    stats.push([`${p.agg_ms} ms`, "to answer this map from an hourly continuous aggregate"]);
+    if (p.raw_ms != null && p.raw_ms >= p.agg_ms * 1.5)
+      stats.push([`${(p.raw_ms / p.agg_ms).toFixed(1)}× faster`, `than scanning raw readings (${p.raw_ms} ms)`]);
+    stats.push([
+      `${fmtCount(p.raw_rows)} → ${fmtCount(p.hourly_rows)}`,
+      "raw readings rolled up into hourly rows",
+    ]);
+  }
+  if (s && s.compressed_chunks > 0 && s.before_bytes && s.after_bytes) {
+    const pct = Math.round((1 - s.after_bytes / s.before_bytes) * 100);
+    stats.push([`${pct}% smaller`, "older data, thanks to Tiger's columnstore compression"]);
+  } else if (s && s.rows > 0) {
+    stats.push([fmtCount(s.rows), "sensor readings stored in a TimescaleDB hypertable"]);
+  }
+  if (!stats.length) return;
+
+  const grid = document.getElementById("statsGrid");
+  grid.replaceChildren();
+  for (const [value, label] of stats) {
+    const box = document.createElement("div");
+    box.className = "stat";
+    const dd = document.createElement("dd");
+    dd.textContent = value;
+    const dt = document.createElement("dt");
+    dt.textContent = label;
+    box.append(dt, dd); // CSS shows the value (dd) above its label (dt)
+    grid.append(box);
+  }
+  document.getElementById("statsNote").textContent =
+    (p && p.loaded_sensors ? `Just downloaded ${p.loaded_sensors} new sensors in ${p.load_secs} s. ` : "") +
+    "Hypertables store every reading; continuous aggregates keep hourly and daily summaries up to date, " +
+    "so charts load without recounting millions of rows.";
+  document.getElementById("stats").hidden = false;
 }
-refreshStorage();
 
 function popupFor(s, rows, avg) {
   const div = document.createElement("div");
   div.className = "popup";
   const h = document.createElement("h2");
   h.textContent = s.name;
+  const chip = aqiChip(
+    avg,
+    avg === null ? "No readings in the last 24 hours" : `${avg.toFixed(1)} µg/m³ · ${bandFor(avg).label}`,
+  );
   const p = document.createElement("p");
-  p.textContent =
-    avg === null
-      ? "No readings in the last 24 hours."
-      : `Last 24 h average: ${avg.toFixed(1)} µg/m³ (${bandFor(avg).label})`;
-  div.append(h, p);
+  p.textContent = rows.length ? "24-hour average above. Hourly readings this week:" : "";
+  div.append(h, chip, p);
   if (rows.length) div.insertAdjacentHTML("beforeend", chartSVG(rows));
   return div;
 }
@@ -832,9 +1004,7 @@ async function drawFavoriteChart(chartElement, favorite) {
 
   let days, status;
   try {
-    const resp = await fetch("/api/history?" + q);
-    const body = await resp.json();
-    if (!resp.ok) throw new Error(body.error || resp.status);
+    const body = await fetchJSON("/api/history?" + q);
     days = body.days;
     status = body.status;
   } catch (err) {
@@ -866,9 +1036,9 @@ async function drawFavoriteChart(chartElement, favorite) {
     sensors: d.sensors,
   }));
 
-  const width = 600,
-    height = 260; // fixed viewBox; CSS scales it to the card
-  const margin = { top: 18, right: 15, bottom: 30, left: 45 };
+  const width = 420,
+    height = 240; // fixed viewBox; CSS scales it to the card
+  const margin = { top: 28, right: 12, bottom: 26, left: 32 };
   const id = "clip" + ++chartId;
 
   // Scale to the daily averages so one faulty sensor spike can't flatten the line.
@@ -931,11 +1101,30 @@ async function drawFavoriteChart(chartElement, favorite) {
     lower = b.max;
   }
 
+  // Axes: months along the bottom, µg/m³ on the left
+  svg
+    .append("g")
+    .attr("class", "axis")
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(5).tickFormat(d3.utcFormat("%b")).tickSizeOuter(0));
+  svg
+    .append("g")
+    .attr("class", "axis")
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(4).tickSizeOuter(0))
+    .call((g) => g.select(".domain").remove());
+  svg
+    .append("text")
+    .attr("class", "chart-caption")
+    .attr("x", margin.left)
+    .attr("y", 15)
+    .text("Daily average PM2.5 (µg/m³), past year");
+
   // Min-to-max range across sensors (clipped if a sensor spikes)
   plot
     .append("path")
     .datum(data)
-    .attr("fill", "#0D9488")
+    .attr("fill", "#246b4a")
     .attr("opacity", 0.18)
     .attr(
       "d",
@@ -951,7 +1140,7 @@ async function drawFavoriteChart(chartElement, favorite) {
     .append("path")
     .datum(data)
     .attr("fill", "none")
-    .attr("stroke", "#0D9488")
+    .attr("stroke", "#246b4a")
     .attr("stroke-width", 2)
     .attr(
       "d",
@@ -961,7 +1150,6 @@ async function drawFavoriteChart(chartElement, favorite) {
         .y((d) => y(d.avg)),
     );
 
-  
   // Hover targets and custom tooltip
   plot
     .selectAll(".hover-point")
@@ -975,9 +1163,9 @@ async function drawFavoriteChart(chartElement, favorite) {
     .style("pointer-events", "all")
     .on("pointerenter", function (event, d) {
       d3.select(this)
-        .attr("fill", "#0D9488")
+        .attr("fill", "#246b4a")
         .attr("fill-opacity", 0.2)
-        .attr("stroke", "#0D9488")
+        .attr("stroke", "#246b4a")
         .attr("stroke-width", 1.5);
 
       tooltip.style("display", "block");
@@ -986,16 +1174,16 @@ async function drawFavoriteChart(chartElement, favorite) {
       const [px, py] = d3.pointer(event, chartElement);
 
       tooltip
-        .style("left", `${Math.max(4, Math.min(
-          px + 12,
-          chartElement.clientWidth - 194
-        ))}px`)
+        .style(
+          "left",
+          `${Math.max(4, Math.min(px + 12, chartElement.clientWidth - 194))}px`,
+        )
         .style("top", `${Math.max(4, py - 12)}px`)
         .text(
           `${d3.utcFormat("%b %d, %Y")(d.day)}\n` +
-          `Average: ${d.avg.toFixed(1)} µg/m³ (${bandFor(d.avg).label})\n` +
-          `Range: ${d.min.toFixed(1)}–${d.max.toFixed(1)} µg/m³\n` +
-          `${d.sensors} sensor${d.sensors === 1 ? "" : "s"}`
+            `Average: ${d.avg.toFixed(1)} µg/m³ (${bandFor(d.avg).label})\n` +
+            `Range: ${d.min.toFixed(1)}–${d.max.toFixed(1)} µg/m³\n` +
+            `${d.sensors} sensor${d.sensors === 1 ? "" : "s"}`,
         );
     })
     .on("pointerleave", function () {
@@ -1008,3 +1196,109 @@ async function drawFavoriteChart(chartElement, favorite) {
       tooltip.style("display", "none");
     });
 }
+
+// ---- Tabs: "Your cities" and "Explore map" ----
+// Returning users (with saved cities) land on their cities; first-time users land on the map.
+// The last tab you picked is remembered, and #cities / #explore in the URL also work.
+const TAB_KEY = "zephoraTab";
+const TABS = {
+  cities: { tab: document.getElementById("tab-cities"), panel: document.getElementById("panel-cities") },
+  explore: { tab: document.getElementById("tab-explore"), panel: document.getElementById("panel-explore") },
+};
+
+function updateCitiesCount(n) {
+  const badge = document.getElementById("citiesCount");
+  badge.textContent = n;
+  badge.hidden = n === 0;
+  badge.setAttribute("aria-label", `${n} saved`);
+}
+
+function selectTab(name, { focusTab = false, remember = true } = {}) {
+  for (const [key, { tab, panel }] of Object.entries(TABS)) {
+    const on = key === name;
+    tab.setAttribute("aria-selected", String(on));
+    tab.tabIndex = on ? 0 : -1;
+    panel.hidden = !on;
+  }
+  if (focusTab) TABS[name].tab.focus();
+  if (remember) {
+    try {
+      localStorage.setItem(TAB_KEY, name);
+    } catch (err) {
+      /* remembering is optional */
+    }
+  }
+  if (location.hash !== "#" + name) history.replaceState(null, "", "#" + name);
+
+  // Leaflet maps measure their size when created; re-measure now that the panel is visible.
+  if (name === "explore") {
+    movingByCode = true; // resizing isn't the person moving the map
+    map.invalidateSize();
+    if (mapTarget) moveMapTo(mapTarget);
+    else setTimeout(() => (movingByCode = false), 600);
+  } else {
+    cityMaps.forEach(fitCityMap);
+  }
+}
+
+for (const [key, { tab }] of Object.entries(TABS)) {
+  tab.addEventListener("click", () => selectTab(key));
+  // Arrow keys move between tabs (standard tabs keyboard pattern)
+  tab.addEventListener("keydown", (ev) => {
+    if (ev.key === "ArrowRight" || ev.key === "ArrowLeft" || ev.key === "Home" || ev.key === "End") {
+      ev.preventDefault();
+      const names = Object.keys(TABS);
+      let i = names.indexOf(key);
+      if (ev.key === "ArrowRight") i = (i + 1) % names.length;
+      else if (ev.key === "ArrowLeft") i = (i - 1 + names.length) % names.length;
+      else i = ev.key === "Home" ? 0 : names.length - 1;
+      selectTab(names[i], { focusTab: true });
+    }
+  });
+}
+window.addEventListener("hashchange", () => {
+  const name = location.hash.slice(1);
+  if (TABS[name]) selectTab(name);
+});
+
+function goFindCity() {
+  selectTab("explore");
+  placeInput.focus();
+  placeInput.select();
+}
+
+function initialTab() {
+  const fromHash = location.hash.slice(1);
+  if (TABS[fromHash]) return fromHash;
+  let saved = null;
+  try {
+    saved = localStorage.getItem(TAB_KEY);
+  } catch (err) {
+    /* ignore */
+  }
+  if (TABS[saved]) return saved;
+  return getFavorites().length ? "cities" : "explore";
+}
+
+// Empty state: a direct way to start
+const DC_PLACE = PLACES.find((p) => p.label === "Washington, District of Columbia") || {
+  label: "Washington, District of Columbia",
+  lat: 38.907,
+  lon: -77.037,
+};
+document.getElementById("emptyFind").onclick = goFindCity;
+document.getElementById("emptyQuickAdd").onclick = () => {
+  if (!isFavorite(DC_PLACE)) {
+    saveFavorites([...getFavorites(), { label: DC_PLACE.label, lat: DC_PLACE.lat, lon: DC_PLACE.lon }]);
+  }
+  renderFavorites();
+  updateSaveButton();
+  cityMaps.forEach(fitCityMap);
+};
+
+selectTab(initialTab(), { remember: false });
+
+// The hero and the map open on your first saved city (or Washington, DC for new visitors),
+// so the page answers "how's the air?" the moment it loads.
+const firstFavorite = getFavorites()[0];
+choose(firstFavorite ? { ...firstFavorite } : DC_PLACE);

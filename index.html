@@ -3,16 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <meta name="theme-color" content="#f6f8f6" />
+    <meta name="theme-color" content="#f5f7f4" />
     <meta
       name="description"
-      content="Explore air quality with Zephora. Discover PM2.5 sensor readings, interactive maps, and historical air pollution trends for cities around the world."
+      content="Explore air quality with Zephora. Live PM2.5 sensor readings, interactive maps, and a year of air pollution history for the cities you care about."
     />
 
     <title>Zephora | Air Quality Explorer</title>
 
-    <link rel="icon" href="data:," />
+    <!-- Wind-swirl favicon (same mark as the header logo) -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23246b4a'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round'%3E%3Cpath d='M10 22 H41 Q51 22 51 14 Q51 7 43 9'/%3E%3Cpath d='M8 33 H48 Q56 33 55 41 Q54 48 46 45'/%3E%3Cpath d='M14 44 H31'/%3E%3C/g%3E%3C/svg%3E"
+    />
+
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
 
     <!-- Leaflet map styles -->
     <link
@@ -28,315 +39,222 @@
     <header class="site-header">
       <div class="header-content">
         <a class="site-brand" href="/" aria-label="Zephora home">
-          <span class="brand-name">Zephora</span>
-          <span class="brand-tagline">Your air, at a glance.</span>
-        </a>
-
-        <nav class="site-nav" aria-label="Main navigation">
-          <a href="about.html">About <span aria-hidden="true">↗</span></a>
-        </nav>
-      </div>
-    </header>
-
-    <main>
-      <!-- ZEPHYRA ANIMATED HERO -->
-
-      <style>
-        .zephyra-hero {
-          position: relative;
-          overflow: hidden;
-          isolation: isolate;
-          min-height: 260px;
-          margin-bottom: 28px;
-          padding: 45px 50px;
-          display: flex;
-          align-items: center;
-        }
-
-        .zephyra-hero-content {
-          position: relative;
-          z-index: 2;
-          max-width: 630px;
-          animation: zephyraFade 0.8s ease-out both;
-        }
-
-        .zephyra-hero-label {
-          color: #367c69;
-          font-size: 0.78rem;
-          font-weight: 750;
-          letter-spacing: 2px;
-          margin-bottom: 15px;
-        }
-
-        .zephyra-hero h2 {
-          color: #20483f;
-          font-size: clamp(2rem, 4vw, 3rem);
-          line-height: 1.15;
-          letter-spacing: -1.5px;
-          margin: 0 0 18px;
-        }
-
-        .zephyra-hero p {
-          color: #4b7166;
-          font-size: 1rem;
-          line-height: 1.8;
-          max-width: 510px;
-          margin: 0;
-        }
-
-        .zephyra-hero-art {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          z-index: 0;
-          pointer-events: none;
-          opacity: 0.35;
-        }
-
-        .zephyra-particle {
-          fill: #367c69;
-        }
-
-        @keyframes zephyraFlow {
-          from {
-            stroke-dashoffset: 0;
-          }
-          to {
-            stroke-dashoffset: -300;
-          }
-        }
-
-        @keyframes zephyraFade {
-          from {
-            opacity: 0;
-            transform: translateY(15px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @media (max-width: 650px) {
-          .zephyra-hero {
-            min-height: 240px;
-            padding: 30px 24px;
-          }
-
-          .zephyra-hero-art {
-            opacity: 0.2;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .zephyra-hero-content {
-            animation: none;
-          }
-        }
-
-        /* Background image or GIF */
-        .hero-background {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          object-position: center;
-          opacity: 0.25;
-          z-index: 0;
-          pointer-events: none;
-        }
-
-        /* Keep text above image */
-        .zephyra-hero-content {
-          position: relative;
-          z-index: 2;
-        }
-      </style>
-
-      <section class="zephyra-hero">
-        <img src="images/wind-farm.png" class="hero-background" alt="" />
-
-        <!-- Background wind illustration -->
-        <svg
-          class="zephyra-hero-art"
-          viewBox="0 0 1000 300"
-          preserveAspectRatio="xMidYMid slice"
-          aria-hidden="true"
-        >
-          <!-- Floating particles -->
-          <circle class="zephyra-particle" r="5">
-            <animateMotion
-              dur="18s"
-              repeatCount="indefinite"
-              path="M -30 75 C 300 0, 650 180, 1050 70"
-            />
-          </circle>
-
-          <circle class="zephyra-particle" r="3">
-            <animateMotion
-              dur="9s"
-              repeatCount="indefinite"
-              path="M -30 160 C 200 70, 700 260, 1050 140"
-            />
-          </circle>
-
-          <circle class="zephyra-particle" r="6">
-            <animateMotion
-              dur="24s"
-              repeatCount="indefinite"
-              path="M -30 255 C 300 100, 700 350, 1050 230"
-            />
-          </circle>
-
-          <circle class="zephyra-particle" r="4">
-            <animateMotion
-              dur="12s"
-              repeatCount="indefinite"
-              path="M -30 110 C 300 30, 700 220, 1050 100"
-            />
-          </circle>
-        </svg>
-
-        <div class="zephyra-hero-content">
-          <div class="zephyra-hero-label">YOUR AIR, AT A GLANCE</div>
-
-          <h2>A clearer view of the air around you.</h2>
-
-          <p>
-            Explore air quality trends, discover nearby sensors, and keep track
-            of the places that matter to you. One breath at a time.
-          </p>
-        </div>
-
-        <a href="about.html" class="hero-learn-card">
-          <span class="hero-learn-icon">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 64 64"
-              fill="none"
-              stroke="#367c69"
-              stroke-width="4"
-              stroke-linecap="round"
-            >
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round">
               <path d="M8 20 H43 Q55 20 55 10 Q55 2 46 4" />
               <path d="M5 32 H52 Q62 32 60 42 Q58 51 48 47" />
               <path d="M12 44 H33 Q43 44 42 53 Q41 60 34 58" />
             </svg>
           </span>
-          <strong>Curious about air quality?</strong>
-          <span>Learn more!</span>
-        </a>
-      </section>
-
-      <!-- END ZEPHYRA HERO -->
-
-      <!-- Saved cities and their historical data -->
-      <section id="favoritesSection" aria-labelledby="favoritesHeading">
-        <div class="section-heading">
-          <div>
-            <h2 id="favoritesHeading">Your cities</h2>
-            <p>Keep track of air quality across your favorite locations.</p>
-          </div>
-        </div>
-
-        <div id="favorites" aria-live="polite">
-          <!-- Favorite city cards are generated by script.js. -->
-        </div>
-      </section>
-
-      <!-- City search and map controls -->
-      <section id="exploreSection" aria-labelledby="exploreHeading">
-        <div class="section-heading">
-          <div>
-            <h2 id="exploreHeading">Explore a location</h2>
-            <p>
-              Search for a city or explore a region on the map to discover
-              nearby air quality sensors.
-            </p>
-          </div>
-        </div>
-
-        <div class="city-search">
-          <label for="place">City or location</label>
-
-          <span class="ac">
-            <input
-              id="place"
-              type="text"
-              autocomplete="off"
-              spellcheck="false"
-              placeholder="Start typing a city…"
-              role="combobox"
-              aria-autocomplete="list"
-              aria-expanded="false"
-              aria-controls="suggest"
-            />
-
-            <ul
-              id="suggest"
-              role="listbox"
-              aria-label="City suggestions"
-              hidden
-            ></ul>
+          <span class="brand-text">
+            <span class="brand-name">Zephora</span>
+            <span class="brand-tagline">Your air, at a glance.</span>
           </span>
+        </a>
+
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href="/" aria-current="page">Dashboard</a>
+          <a href="about.html">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero: the promise on the left, the live answer on the right -->
+      <section class="hero" aria-labelledby="heroTitle">
+        <img src="images/wind-farm.png" class="hero-background" alt="" />
+
+        <svg
+          class="hero-art"
+          viewBox="0 0 1000 300"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          <circle class="hero-particle" r="5">
+            <animateMotion dur="18s" repeatCount="indefinite" path="M -30 75 C 300 0, 650 180, 1050 70" />
+          </circle>
+          <circle class="hero-particle" r="3">
+            <animateMotion dur="9s" repeatCount="indefinite" path="M -30 160 C 200 70, 700 260, 1050 140" />
+          </circle>
+          <circle class="hero-particle" r="6">
+            <animateMotion dur="24s" repeatCount="indefinite" path="M -30 255 C 300 100, 700 350, 1050 230" />
+          </circle>
+          <circle class="hero-particle" r="4">
+            <animateMotion dur="12s" repeatCount="indefinite" path="M -30 110 C 300 30, 700 220, 1050 100" />
+          </circle>
+        </svg>
+
+        <div class="hero-copy">
+          <p class="eyebrow">Your air, at a glance</p>
+          <h1 id="heroTitle">A clearer view of the air around you.</h1>
+          <p>
+            Explore air quality trends, discover nearby sensors, and keep track
+            of the places that matter to you. One breath at a time.
+          </p>
+
+          <a href="about.html" class="hero-link">
+            <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" aria-hidden="true">
+              <path d="M8 20 H43 Q55 20 55 10 Q55 2 46 4" />
+              <path d="M5 32 H52 Q62 32 60 42 Q58 51 48 47" />
+              <path d="M12 44 H33 Q43 44 42 53 Q41 60 34 58" />
+            </svg>
+            What do these numbers mean?
+            <span aria-hidden="true">→</span>
+          </a>
         </div>
 
-        <div class="explore-actions">
-          <button id="saveFavorite" type="button" disabled>
-            ☆ Save favorite
-          </button>
-
-          <button id="loadView" type="button">Load current map view</button>
-        </div>
-
-        <p id="status" role="status" aria-live="polite">
-          Search for a city and select a suggestion, or pan and zoom the map
-          before loading the current map view.
-        </p>
-
-        <!-- Optional diagnostic information -->
-        <details id="diagnostics">
-          <summary>Data and performance details</summary>
-          <p id="perf" hidden></p>
-          <p id="storage" hidden></p>
-        </details>
-      </section>
-
-      <!-- Interactive sensor map -->
-      <section id="mapSection" aria-labelledby="mapHeading">
-        <div class="section-heading map-heading">
-          <div>
-            <h2 id="mapHeading">Sensor map</h2>
-            <p>Explore available PM2.5 sensor readings by location.</p>
+        <!-- Filled in by script.js from the same data as the map -->
+        <aside class="now-card is-loading" id="nowCard" aria-live="polite" aria-labelledby="nowLabel">
+          <p class="now-label" id="nowLabel">Right now in</p>
+          <p class="now-place" id="nowPlace">Washington, DC</p>
+          <div class="now-reading">
+            <span class="now-value" id="nowValue">–</span>
+            <span class="now-unit">µg/m³ PM2.5</span>
           </div>
-        </div>
-
-        <div
-          id="map"
-          role="region"
-          aria-label="Interactive air quality sensor map"
-        ></div>
-
-        <p class="map-caption">
-          Sensor availability and historical coverage vary by location.
-        </p>
+          <span class="aqi-chip" id="nowBand">Checking sensors…</span>
+          <p class="now-meta" id="nowMeta">Fetching the latest readings from nearby outdoor sensors.</p>
+        </aside>
       </section>
+
+      <!-- Two views of the app. Returning users land on their cities; new users land on the map. -->
+      <div class="view-tabs" role="tablist" aria-label="Views">
+        <button type="button" role="tab" id="tab-cities" aria-controls="panel-cities" aria-selected="false" tabindex="-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" />
+          </svg>
+          Your cities
+          <span class="tab-count" id="citiesCount" hidden></span>
+        </button>
+        <button type="button" role="tab" id="tab-explore" aria-controls="panel-explore" aria-selected="false" tabindex="-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 4L3 6.5v13L9 17l6 2.5 6-2.5V4l-6 2.5z" />
+            <path d="M9 4v13M15 6.5v13" />
+          </svg>
+          Explore map
+        </button>
+      </div>
+
+      <div class="tab-panel" id="panel-cities" role="tabpanel" aria-labelledby="tab-cities" tabindex="0" hidden>
+      <!-- Saved cities and their historical data -->
+        <section id="favoritesSection" aria-labelledby="favoritesHeading">
+          <div class="section-heading">
+            <div>
+              <h2 id="favoritesHeading">Your cities</h2>
+              <p>Live air, a year of history and optional email alerts for the places you care about.</p>
+            </div>
+          </div>
+  
+          <!-- Shown when nothing is saved yet (status + what it's for + a direct way to start) -->
+          <div class="empty-cities" id="emptyCities" hidden>
+            <span class="empty-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" />
+                <circle cx="12" cy="9.5" r="2.5" />
+              </svg>
+            </span>
+            <h3>You haven't saved any cities yet</h3>
+            <p>
+              Save the places you care about, like home, work or family, and they'll
+              open here every time: live air, a year of history, and email alerts.
+            </p>
+            <div class="empty-actions">
+              <button type="button" class="btn btn-primary" id="emptyFind">Find a city on the map</button>
+              <button type="button" class="btn" id="emptyQuickAdd">☆ Save Washington, DC</button>
+            </div>
+          </div>
+  
+          <div id="favorites" aria-live="polite">
+            <!-- Favorite city cards are generated by script.js. -->
+          </div>
+        </section>
+      </div>
+
+      <div class="tab-panel" id="panel-explore" role="tabpanel" aria-labelledby="tab-explore" tabindex="0" hidden>
+      <!-- Search + map + database stats, as one panel -->
+        <section id="mapSection" aria-labelledby="mapHeading">
+          <div class="section-heading">
+            <div>
+              <h2 id="mapHeading">Explore the map</h2>
+              <p>
+                Each dot is an outdoor sensor, colored by its 24-hour average.
+                Click one to see its hourly history.
+              </p>
+            </div>
+          </div>
+  
+          <div class="map-shell">
+            <div class="map-toolbar">
+              <div class="city-search">
+                <label for="place" class="visually-hidden">Search for a city</label>
+                <span class="ac">
+                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="#56675c" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M20 20 L16.2 16.2" />
+                  </svg>
+                  <input
+                    id="place"
+                    type="text"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="Search a city, like Baltimore or Mumbai…"
+                    role="combobox"
+                    aria-autocomplete="list"
+                    aria-expanded="false"
+                    aria-controls="suggest"
+                  />
+                  <ul id="suggest" role="listbox" aria-label="City suggestions" hidden></ul>
+                </span>
+              </div>
+  
+              <button id="saveFavorite" class="btn btn-primary" type="button" disabled
+                      title="Search for a city first, then save it">
+                ☆ Save to your cities
+              </button>
+  
+              <p id="status" role="status" aria-live="polite">Loading Washington, DC…</p>
+            </div>
+  
+            <div class="map-stage">
+              <div id="map" role="region" aria-label="Interactive air quality sensor map"></div>
+              <!-- Appears after you pan or zoom the map -->
+              <button id="loadView" type="button" hidden>↻ Search this area</button>
+            </div>
+  
+            <!-- Tiger Data performance and storage, filled in by script.js -->
+            <div class="stats" id="stats" hidden>
+              <p class="stats-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+                  <ellipse cx="12" cy="5.5" rx="7.5" ry="3" />
+                  <path d="M4.5 5.5 V18.5 C4.5 20.2 7.9 21.5 12 21.5 C16.1 21.5 19.5 20.2 19.5 18.5 V5.5" />
+                  <path d="M4.5 12 C4.5 13.7 7.9 15 12 15 C16.1 15 19.5 13.7 19.5 12" />
+                </svg>
+                Powered by Tiger Data
+              </p>
+              <dl class="stats-grid" id="statsGrid"></dl>
+              <p class="stats-note" id="statsNote"></p>
+            </div>
+          </div>
+  
+          <p class="map-caption">
+            Sensor coverage varies by location. Readings can be missing or delayed.
+          </p>
+        </section>
+  
+      </div>
     </main>
 
-    <footer>
+    <footer class="site-footer">
       <p>
-        Air quality data is provided by available monitoring sensors. Readings
-        may be incomplete or delayed.
+        Air quality data from outdoor sensors via CMU CREATE Lab's ESDR. Categories
+        follow US EPA PM2.5 breakpoints. Readings may be incomplete or delayed;
+        check official local guidance for health decisions.
       </p>
     </footer>
 
     <!-- JavaScript dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="js/geographical_data.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
 
     <!-- Application logic -->
     <script src="js/script.js"></script>

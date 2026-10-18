@@ -1,291 +1,34 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <link rel="stylesheet" href="css/styles.css">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>About | Air Quality Explorer</title>
+    <meta name="theme-color" content="#f5f7f4" />
     <meta
       name="description"
-      content="Learn about PM2.5, air quality monitoring, sensor data, and how to interpret the Air Quality Explorer dashboard."
+      content="Learn about PM2.5, how air quality is measured, and how to read the Zephora dashboard."
     />
 
-    <link rel="icon" href="data:," />
+    <title>About | Zephora</title>
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23246b4a'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round'%3E%3Cpath d='M10 22 H41 Q51 22 51 14 Q51 7 43 9'/%3E%3Cpath d='M8 33 H48 Q56 33 55 41 Q54 48 46 45'/%3E%3Cpath d='M14 44 H31'/%3E%3C/g%3E%3C/svg%3E"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
+
+    <!-- Shared Zephora styles (colors, header, footer) -->
+    <link rel="stylesheet" href="css/styles.css" />
 
     <style>
-      :root {
-        --background: #f5f8fa;
-        --surface: #ffffff;
-        --text: #23313d;
-        --muted: #5e6c77;
-        --primary: #245b73;
-        --primary-light: #e5f0f5;
-        --border: #dce5ea;
-        --accent: #367c69;
-        --content-width: 1100px;
-      }
+        h1, h2, h3 { line-height: 1.25; }
 
-      * {
-        box-sizing: border-box;
-      }
-
-      html {
-        scroll-behavior: smooth;
-        scroll-padding-top: 90px;
-      }
-
-      body {
-        margin: 0;
-        font-family:
-          system-ui,
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          sans-serif;
-        line-height: 1.7;
-        color: var(--text);
-        background: var(--background);
-      }
-
-      a {
-        color: var(--primary);
-      }
-
-      a:hover {
-        text-decoration-thickness: 2px;
-      }
-
-      
-
-      nav a[aria-current="page"] {
-        color: var(--accent);
-      }
-
-      main {
-        max-width: var(--content-width);
-        margin: 0 auto;
-        padding: 2rem 1.25rem 4rem;
-      }
-
-      .hero {
-        padding: clamp(2rem, 6vw, 4.5rem);
-        background: var(--primary-light);
-        border: 1px solid var(--border);
-        border-radius: 1.25rem;
-      }
-
-      .eyebrow {
-        margin: 0 0 0.5rem;
-        color: var(--accent);
-        font-weight: 750;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        font-size: 0.8rem;
-      }
-
-      h1,
-      h2,
-      h3 {
-        line-height: 1.25;
-      }
-
-      h1 {
-        max-width: 760px;
-        margin: 0 0 1rem;
-        font-size: clamp(2.2rem, 5vw, 3.5rem);
-        letter-spacing: -0.04em;
-      }
-
-      h2 {
-        margin: 0 0 1rem;
-        font-size: clamp(1.6rem, 3vw, 2.1rem);
-      }
-
-      h3 {
-        margin: 0 0 0.5rem;
-        font-size: 1.1rem;
-      }
-
-      p {
-        margin: 0 0 1rem;
-      }
-
-      .hero p {
-        max-width: 760px;
-        font-size: 1.1rem;
-        color: #344d5b;
-      }
-
-      .button {
-        display: inline-block;
-        margin-top: 0.5rem;
-        padding: 0.7rem 1.1rem;
-        color: white;
-        background: var(--primary);
-        border-radius: 0.55rem;
-        text-decoration: none;
-        font-weight: 650;
-      }
-
-      .button:hover {
-        background: #19465a;
-      }
-
-      .contents {
-        margin: 1.5rem 0 3rem;
-        padding: 1.25rem;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 0.85rem;
-      }
-
-      .contents h2 {
-        margin-bottom: 0.75rem;
-        font-size: 1.1rem;
-      }
-
-      .contents ul {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem 1.5rem;
-        margin: 0;
-        padding-left: 1.25rem;
-      }
-
-      section {
-        margin-top: 3.5rem;
-        scroll-margin-top: 90px;
-      }
-
-      .intro {
-        max-width: 780px;
-        margin-bottom: 1.5rem;
-        color: var(--muted);
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1rem;
-      }
-
-      .card {
-        padding: 1.4rem;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 0.85rem;
-      }
-
-      .card p:last-child {
-        margin-bottom: 0;
-      }
-
-      .callout {
-        margin-top: 1.25rem;
-        padding: 1.25rem;
-        background: var(--primary-light);
-        border-left: 4px solid var(--primary);
-        border-radius: 0.4rem;
-      }
-
-      .callout p:last-child {
-        margin-bottom: 0;
-      }
-
-      .steps {
-        padding-left: 1.4rem;
-      }
-
-      .steps li {
-        margin-bottom: 0.75rem;
-        padding-left: 0.25rem;
-      }
-
-      .data-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 1.25rem 0;
-        background: var(--surface);
-      }
-
-      .data-table th,
-      .data-table td {
-        padding: 0.85rem;
-        border: 1px solid var(--border);
-        text-align: left;
-        vertical-align: top;
-      }
-
-      .data-table th {
-        background: var(--primary-light);
-      }
-
-      .notice {
-        padding: 1.25rem;
-        background: #fff8e8;
-        border: 1px solid #ead9ae;
-        border-radius: 0.75rem;
-      }
-
-      .sources li {
-        margin-bottom: 0.65rem;
-      }
-
-      footer {
-        padding: 2rem 1.25rem;
-        text-align: center;
-        color: var(--muted);
-        background: var(--surface);
-        border-top: 1px solid var(--border);
-        font-size: 0.9rem;
-      }
-
-      footer a {
-        margin: 0 0.35rem;
-      }
-
-      @media (max-width: 650px) {
-     
-
-        .grid {
-          grid-template-columns: 1fr;
-        }
-
-        .data-table {
-          font-size: 0.9rem;
-        }
-
-        .data-table th,
-        .data-table td {
-          padding: 0.6rem;
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        html {
-          scroll-behavior: auto;
-        }
-      }
-    </style>
-  </head>
-
-  <body>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-      <meta name="theme-color" content="#f5f7f4" />
-      <meta
-        name="description"
-        content="Learn about PM2.5, air quality monitoring, sensor data, and how this dashboard works."
-      />
-
-      <title>About | Air Quality</title>
-      <link rel="icon" href="data:," />
-      <link rel="stylesheet" href="css/styles.css" />
-
-      <style>
         /* About page layout */
         .about-main {
           width: min(100% - 2.5rem, 1000px);
@@ -433,31 +176,31 @@
           }
         }
       </style>
-    </head>
-<header>
-  <div class="header-content">
+  </head>
 
-    <a class="brand-home" href="/" aria-label="Home">
-      <svg width="48" height="48" viewBox="0 0 64 64"
-           fill="none" stroke="#D6F1E1"
-           stroke-width="4" stroke-linecap="round">
-        <path d="M8 20 H43 Q55 20 55 10 Q55 2 46 4"/>
-        <path d="M5 32 H52 Q62 32 60 42 Q58 51 48 47"/>
-        <path d="M12 44 H33 Q43 44 42 53 Q41 60 34 58"/>
-      </svg>
-    </a>
+  <body>
+    <header class="site-header">
+      <div class="header-content">
+        <a class="site-brand" href="/" aria-label="Zephora home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round">
+              <path d="M8 20 H43 Q55 20 55 10 Q55 2 46 4" />
+              <path d="M5 32 H52 Q62 32 60 42 Q58 51 48 47" />
+              <path d="M12 44 H33 Q43 44 42 53 Q41 60 34 58" />
+            </svg>
+          </span>
+          <span class="brand-text">
+            <span class="brand-name">Zephora</span>
+            <span class="brand-tagline">Your air, at a glance.</span>
+          </span>
+        </a>
 
-    <a class="header-title">
-      <h1>Zephora</h1>
-      <p>Your air, at a glance.</p>
-    </a>
-
-    <nav class="site-nav">
-<a href="/">← Back to Dashboard</a>
-    </nav>
-
-  </div>
-</header>
+        <nav class="site-nav" aria-label="Main navigation">
+          <a href="/">Dashboard</a>
+          <a href="about.html" aria-current="page">About</a>
+        </nav>
+      </div>
+    </header>
 
     <main class="about-main">
       <!-- ANIMATED ABOUT PAGE HERO -->
@@ -860,6 +603,9 @@
         }
 
         .aqi-option {
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
           cursor: pointer;
           background: transparent;
           border: none;
@@ -895,7 +641,20 @@
           display: block;
           margin-top: 9px;
           font-size: 0.75rem;
-          font-weight: 650;
+          font-weight: 700;
+          line-height: 1.3;
+        }
+
+        .aqi-range small {
+          display: block;
+          margin-top: 2px;
+          color: var(--text-muted);
+          font-size: 0.68rem;
+          font-weight: 500;
+        }
+
+        .aqi-color {
+          box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
         }
 
         .aqi-details {
@@ -1004,8 +763,14 @@
             height: 19px;
           }
 
+          /* Six columns is too tight on a phone: use 3 x 2 */
+          .aqi-bar {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            row-gap: 14px;
+          }
+
           .aqi-range {
-            font-size: 0.62rem;
+            font-size: 0.72rem;
           }
 
           .aqi-details {
@@ -1014,6 +779,11 @@
 
           .aqi-details-header {
             align-items: flex-start;
+            flex-wrap: wrap;
+          }
+
+          .aqi-number {
+            white-space: normal;
           }
 
           .aqi-icon {
@@ -1048,62 +818,62 @@
           <div class="aqi-bar" role="group" aria-label="Air quality levels">
             <button
               class="aqi-option"
-              style="--level-color: #28986a"
+              style="--level-color: #00e400"
               data-level="0"
               aria-pressed="false"
             >
               <span class="aqi-color"></span>
-              <span class="aqi-range">0–50</span>
+              <span class="aqi-range">Good<small>AQI 0–50</small><small>0–9 µg/m³</small></span>
             </button>
 
             <button
               class="aqi-option"
-              style="--level-color: #b48a15"
+              style="--level-color: #ffff00"
               data-level="1"
               aria-pressed="false"
             >
               <span class="aqi-color"></span>
-              <span class="aqi-range">51–100</span>
+              <span class="aqi-range">Moderate<small>AQI 51–100</small><small>9–35 µg/m³</small></span>
             </button>
 
             <button
               class="aqi-option"
-              style="--level-color: #e58030"
+              style="--level-color: #ff7e00"
               data-level="2"
               aria-pressed="false"
             >
               <span class="aqi-color"></span>
-              <span class="aqi-range">101–150</span>
+              <span class="aqi-range">Sensitive groups<small>AQI 101–150</small><small>35–55 µg/m³</small></span>
             </button>
 
             <button
               class="aqi-option"
-              style="--level-color: #d44d50"
+              style="--level-color: #ff0000"
               data-level="3"
               aria-pressed="true"
             >
               <span class="aqi-color"></span>
-              <span class="aqi-range">151–200</span>
+              <span class="aqi-range">Unhealthy<small>AQI 151–200</small><small>55–125 µg/m³</small></span>
             </button>
 
             <button
               class="aqi-option"
-              style="--level-color: #8757ad"
+              style="--level-color: #8f3f97"
               data-level="4"
               aria-pressed="false"
             >
               <span class="aqi-color"></span>
-              <span class="aqi-range">201–300</span>
+              <span class="aqi-range">Very unhealthy<small>AQI 201–300</small><small>125–225 µg/m³</small></span>
             </button>
 
             <button
               class="aqi-option"
-              style="--level-color: #81324d"
+              style="--level-color: #7e0023"
               data-level="5"
               aria-pressed="false"
             >
               <span class="aqi-color"></span>
-              <span class="aqi-range">301+</span>
+              <span class="aqi-range">Hazardous<small>AQI 301+</small><small>225+ µg/m³</small></span>
             </button>
           </div>
 
@@ -1139,9 +909,11 @@
           </div>
 
           <p class="aqi-footnote">
-            These categories use the U.S. Air Quality Index. AQI is not the same
-            as a raw PM2.5 concentration measured in µg/m³. Recommendations are
-            general; check local official guidance for current conditions.
+            These categories use the U.S. Air Quality Index and its official
+            colors. The AQI is a 0–500 index, while our map shows the raw PM2.5
+            concentration in µg/m³, so each level above lists both. The map's
+            colors match these exactly. Recommendations are general; check local
+            official guidance for current conditions.
             <a
               href="https://www.airnow.gov/aqi/aqi-basics/"
               target="_blank"
@@ -1164,8 +936,11 @@
               "Air quality is satisfactory, and air pollution poses little or no risk.",
             advice:
               "Enjoy your usual outdoor activities. It's a great day for a walk, run, or picnic!",
-            color: "#28986a",
-            background: "#e5f5eb",
+            color: "#1d6b25",
+            background: "#e4f8e5",
+            fill: "#00e400",
+            onFill: "#123d17",
+            pm: "0–9.0",
             icon: "☀",
           },
           {
@@ -1176,8 +951,11 @@
               "Air quality is acceptable for most people, although some unusually sensitive individuals may experience effects.",
             advice:
               "Most people can continue normal activities. If you're unusually sensitive to air pollution, watch for symptoms.",
-            color: "#b48a15",
-            background: "#fff5ce",
+            color: "#6b5a00",
+            background: "#fffbd6",
+            fill: "#ffff00",
+            onFill: "#4a3f00",
+            pm: "9.1–35.4",
             icon: "☁",
           },
           {
@@ -1188,8 +966,11 @@
               "Sensitive groups, including children, older adults, and people with heart or lung conditions, face greater risks.",
             advice:
               "Sensitive groups should reduce prolonged or strenuous outdoor activity. Others can generally continue normal activities.",
-            color: "#e58030",
-            background: "#fff0df",
+            color: "#9a4600",
+            background: "#ffefe0",
+            fill: "#ff7e00",
+            onFill: "#3d1c00",
+            pm: "35.5–55.4",
             icon: "♡",
           },
           {
@@ -1200,8 +981,11 @@
               "Health effects become more likely for everyone, especially people with heart or lung conditions.",
             advice:
               "Reduce prolonged outdoor exertion. Sensitive groups should avoid prolonged or strenuous outdoor activity.",
-            color: "#d44d50",
-            background: "#fde8e8",
+            color: "#b0001a",
+            background: "#ffe6e6",
+            fill: "#ff0000",
+            onFill: "#ffffff",
+            pm: "55.5–125.4",
             icon: "⚠",
           },
           {
@@ -1212,8 +996,11 @@
               "This level represents a health alert. The risk of health effects is increased for everyone.",
             advice:
               "Avoid strenuous outdoor activities and spend more time in cleaner indoor air. Consider using a HEPA air cleaner.",
-            color: "#8757ad",
-            background: "#f3e9fc",
+            color: "#74307b",
+            background: "#f4e7f5",
+            fill: "#8f3f97",
+            onFill: "#ffffff",
+            pm: "125.5–225.4",
             icon: "⌂",
           },
           {
@@ -1224,8 +1011,11 @@
               "Emergency-level pollution conditions can affect everyone, including healthy individuals.",
             advice:
               "Avoid outdoor physical activity and stay in filtered indoor air. For heavy particle pollution, if you must go outside, a properly fitted N95 respirator can help reduce exposure.",
-            color: "#81324d",
-            background: "#f8e6ec",
+            color: "#7e0023",
+            background: "#f7e1e7",
+            fill: "#7e0023",
+            onFill: "#ffffff",
+            pm: "225.5+",
             icon: "!",
           },
         ];
@@ -1239,7 +1029,7 @@
           document.getElementById("aqiCategory").textContent = level.category;
 
           document.getElementById("aqiNumber").textContent =
-            "AQI " + level.range;
+            "AQI " + level.range + " · PM2.5 " + level.pm + " µg/m³";
 
           document.getElementById("aqiHeadline").textContent = level.headline;
 
@@ -1253,8 +1043,11 @@
           document.getElementById("aqiDetails").style.backgroundColor =
             level.background;
 
+          // Icon uses the official EPA color; text elsewhere uses a darker,
+          // readable shade of the same hue.
           document.getElementById("aqiIcon").style.backgroundColor =
-            level.color;
+            level.fill;
+          document.getElementById("aqiIcon").style.color = level.onFill;
 
           document.getElementById("aqiNumber").style.color = level.color;
 
@@ -1401,7 +1194,7 @@
           height: 120px;
           margin: 8px 0 14px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.42);
+          background: rgba(255, 255, 255, 0.7);
           font-size: 64px;
         }
 
@@ -1597,7 +1390,7 @@
         <div class="learn-track" id="learnTrack">
           <article class="learn-card">
             <span class="learn-number">01</span>
-            <div class="learn-illustration" aria-hidden="true">🌫️</div>
+            <div class="learn-illustration" aria-hidden="true"><svg viewBox="0 0 64 64" width="60" height="60" fill="none" stroke="#246b4a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="22" r="4"/><circle cx="38" cy="16" r="2.5"/><circle cx="44" cy="32" r="5"/><circle cx="26" cy="40" r="3"/><circle cx="16" cy="50" r="2"/><circle cx="40" cy="50" r="2.5"/></svg></div>
             <h3>Understanding PM2.5</h3>
             <p>
               PM2.5 refers to airborne particles 2.5 micrometers or smaller.
@@ -1611,7 +1404,7 @@
 
           <article class="learn-card">
             <span class="learn-number">02</span>
-            <div class="learn-illustration" aria-hidden="true">📡</div>
+            <div class="learn-illustration" aria-hidden="true"><svg viewBox="0 0 64 64" width="60" height="60" fill="none" stroke="#246b4a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 46 L32 26 L42 46"/><path d="M18 56 H46"/><path d="M32 26 V22"/><path d="M24 14 A11 11 0 0 1 40 14"/><path d="M18 8 A19 19 0 0 1 46 8"/></svg></div>
             <h3>Where Data Comes From</h3>
             <p>
               Our dashboard uses air quality measurements from environmental
@@ -1624,7 +1417,7 @@
 
           <article class="learn-card">
             <span class="learn-number">03</span>
-            <div class="learn-illustration" aria-hidden="true">💻</div>
+            <div class="learn-illustration" aria-hidden="true"><svg viewBox="0 0 64 64" width="60" height="60" fill="none" stroke="#246b4a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="32" cy="14" rx="18" ry="6"/><path d="M14 14 V48 C14 51.3 22 54 32 54 C42 54 50 51.3 50 48 V14"/><path d="M14 31 C14 34.3 22 37 32 37 C42 37 50 34.3 50 31"/></svg></div>
             <h3>Behind the Technology</h3>
             <p>
               Our application combines interactive maps, environmental data
@@ -1637,7 +1430,7 @@
 
           <article class="learn-card">
             <span class="learn-number">04</span>
-            <div class="learn-illustration" aria-hidden="true">🔍</div>
+            <div class="learn-illustration" aria-hidden="true"><svg viewBox="0 0 64 64" width="60" height="60" fill="none" stroke="#246b4a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="28" cy="28" r="15"/><path d="M39 39 L52 52"/><path d="M22 28 H34"/></svg></div>
             <h3>Understanding Limitations</h3>
             <p>
               Air pollution varies across neighborhoods, times, and weather
@@ -1650,7 +1443,7 @@
 
           <article class="learn-card">
             <span class="learn-number">05</span>
-            <div class="learn-illustration" aria-hidden="true">🛡️</div>
+            <div class="learn-illustration" aria-hidden="true"><svg viewBox="0 0 64 64" width="60" height="60" fill="none" stroke="#246b4a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M32 8 L50 15 V30 C50 42 42 51 32 56 C22 51 14 42 14 30 V15 Z"/><path d="M24 32 L30 38 L41 26"/></svg></div>
             <h3>Using Data Responsibly</h3>
             <p>
               Air quality measurements are useful for identifying pollution
@@ -1669,7 +1462,7 @@
 
           <article class="learn-card">
             <span class="learn-number">06</span>
-            <div class="learn-illustration" aria-hidden="true">🌎</div>
+            <div class="learn-illustration" aria-hidden="true"><svg viewBox="0 0 64 64" width="60" height="60" fill="none" stroke="#246b4a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="32" r="22"/><path d="M10 32 H54"/><path d="M32 10 C24 18 24 46 32 54"/><path d="M32 10 C40 18 40 46 32 54"/></svg></div>
             <h3>Explore Further</h3>
             <p>
               Air pollution affects communities around the world. Explore how
@@ -1933,7 +1726,7 @@
       </a>
     </main>
 
-    <footer>
+    <footer class="site-footer">
       <p>
         Air quality data is provided by available monitoring sensors. Readings
         may be incomplete or delayed.
