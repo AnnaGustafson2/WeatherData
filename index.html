@@ -27,14 +27,25 @@
     <header>
       <div class="header-content">
         <div class="brand">
-          <a
-            class="brand-home"
-            href="index.html"
-            aria-label="Air Quality dashboard home"
-          >
-          </a>
+          
+<a class="brand-home" href="index.html" aria-label="Zephyra home">
+  <svg width="42" height="42" viewBox="0 0 48 48"
+       fill="none" xmlns="http://www.w3.org/2000/svg"
+       aria-hidden="true">
+    <path d="M6 17H32C41 17 41 6 34 6C30 6 28 9 28 12"
+          stroke="#367C69" stroke-width="3"
+          stroke-linecap="round"/>
+    <path d="M4 25H39C46 25 46 35 39 35C36 35 34 33 34 30"
+          stroke="#367C69" stroke-width="3"
+          stroke-linecap="round"/>
+    <path d="M9 33H23C31 33 31 43 24 43C21 43 19 41 19 38"
+          stroke="#78B5A0" stroke-width="3"
+          stroke-linecap="round"/>
+  </svg>
+</a>
+
           <div>
-            <h1>Air Quality</h1>
+            <h1>Zephyra</h1>
             <p>Understand the air around you.</p>
           </div>
         </div>
@@ -46,6 +57,176 @@
     </header>
 
     <main>
+      
+<!-- ZEPHYRA ANIMATED HERO -->
+
+<style>
+  .zephyra-hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    min-height: 260px;
+    margin-bottom: 28px;
+    padding: 45px 50px;
+    display: flex;
+    align-items: center;
+
+    background: linear-gradient(120deg, #dcece3, #eaf4ef, #f3f8f5);
+    border: 2px solid #719c8b;
+    border-radius: 22px;
+  }
+
+  .zephyra-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 630px;
+    animation: zephyraFade 0.8s ease-out both;
+  }
+
+  .zephyra-hero-label {
+    color: #367c69;
+    font-size: 0.78rem;
+    font-weight: 750;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+  }
+
+  .zephyra-hero h2 {
+    color: #20483f;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.15;
+    letter-spacing: -1.5px;
+    margin: 0 0 18px;
+  }
+
+  .zephyra-hero p {
+    color: #4b7166;
+    font-size: 1rem;
+    line-height: 1.8;
+    max-width: 510px;
+    margin: 0;
+  }
+
+  .zephyra-hero-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.35;
+  }
+
+  .zephyra-wind {
+    fill: none;
+    stroke: #5caa91;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 35 25;
+    animation: zephyraFlow 10s linear infinite;
+  }
+
+  .zephyra-wind:nth-child(2) {
+    animation-duration: 15s;
+    stroke: #367c69;
+  }
+
+  .zephyra-wind:nth-child(3) {
+    animation-duration: 7s;
+    stroke: #8ac8b2;
+  }
+
+  .zephyra-particle {
+    fill: #367c69;
+  }
+
+  @keyframes zephyraFlow {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -300; }
+  }
+
+  @keyframes zephyraFade {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 650px) {
+    .zephyra-hero {
+      min-height: 240px;
+      padding: 30px 24px;
+    }
+
+    .zephyra-hero-art {
+      opacity: 0.2;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zephyra-hero-content,
+    .zephyra-wind {
+      animation: none;
+    }
+  }
+</style>
+
+<section class="zephyra-hero">
+
+  <!-- Background wind illustration -->
+  <svg class="zephyra-hero-art"
+       viewBox="0 0 1000 300"
+       preserveAspectRatio="xMidYMid slice"
+       aria-hidden="true">
+
+    <path class="zephyra-wind"
+      d="M -100 70 C 200 -60, 400 200, 650 70 S 1000 -30, 1150 70"/>
+
+    <path class="zephyra-wind"
+      d="M -100 150 C 170 10, 430 290, 680 150 S 1000 20, 1150 150"/>
+
+    <path class="zephyra-wind"
+      d="M -100 230 C 200 90, 440 370, 680 230 S 1000 100, 1150 230"/>
+
+    <!-- Floating particles -->
+    <circle class="zephyra-particle" r="5">
+      <animateMotion dur="18s" repeatCount="indefinite"
+        path="M -30 75 C 300 0, 650 180, 1050 70"/>
+    </circle>
+
+    <circle class="zephyra-particle" r="3">
+      <animateMotion dur="9s" repeatCount="indefinite"
+        path="M -30 160 C 200 70, 700 260, 1050 140"/>
+    </circle>
+
+    <circle class="zephyra-particle" r="6">
+      <animateMotion dur="24s" repeatCount="indefinite"
+        path="M -30 255 C 300 100, 700 350, 1050 230"/>
+    </circle>
+
+    <circle class="zephyra-particle" r="4">
+      <animateMotion dur="12s" repeatCount="indefinite"
+        path="M -30 110 C 300 30, 700 220, 1050 100"/>
+    </circle>
+
+  </svg>
+
+  <div class="zephyra-hero-content">
+    <div class="zephyra-hero-label">
+      YOUR AIR, AT A GLANCE
+    </div>
+
+    <h2>A clearer view of the air around you.</h2>
+
+    <p>
+      Explore air quality trends, discover nearby sensors,
+      and keep track of the places that matter to you.
+      One breath at a time.
+    </p>
+  </div>
+
+</section>
+
+<!-- END ZEPHYRA HERO -->
+
       <!-- Saved cities and their historical data -->
       <section id="favoritesSection" aria-labelledby="favoritesHeading">
         <div class="section-heading">

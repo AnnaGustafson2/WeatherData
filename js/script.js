@@ -258,11 +258,6 @@ function renderFavorites() {
 
   const favorites = getFavorites();
 
-  if (favorites.length === 0) {
-    favoritesList.textContent = "No favorite cities yet.";
-    updateSaveButton();
-    return;
-  }
 
   for (const favorite of favorites) {
     const card = document.createElement("article");
@@ -372,6 +367,29 @@ function renderFavorites() {
 
     loadFavoriteData();
   }
+
+  
+  // Add City card appears after all saved cities
+  const addCard = document.createElement("button");
+  addCard.type = "button";
+  addCard.className = "add-city-card";
+
+  addCard.innerHTML = `
+    <span class="add-city-icon">＋</span>
+    <strong>Add a city</strong>
+    <span>Explore another location</span>
+  `;
+
+  addCard.onclick = () => {
+    document.getElementById("exploreSection")
+      .scrollIntoView({ behavior: "smooth" });
+
+    document.getElementById("place").focus({
+      preventScroll: true
+    });
+  };
+
+  favoritesList.append(addCard);
 
   updateSaveButton();
 }

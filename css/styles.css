@@ -819,3 +819,67 @@ header .header-content {
 
 /* Opening one card's alerts shouldn't stretch the cards beside it. */
 #favorites { align-items: start; }
+
+/* Your Cities layout */
+
+#favorites {
+  display: flex;
+  gap: 18px;
+  padding: 12px 20px;
+  overflow-x: auto;
+  align-items: stretch;
+}
+
+/* Saved city cards */
+#favorites .favorite-card {
+  flex: 0 0 330px;
+  margin: 0;
+}
+
+/* Add City card */
+.add-city-card {
+  flex: 0 0 330px;
+  min-height: 260px;
+  padding: 25px;
+  border: 2px dashed #aac6ba;
+  border-radius: 18px;
+  background: #e6edf3;
+  color: #315d50;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+  text-align: center;
+
+  transition: background 0.2s, transform 0.2s;
+}
+
+.add-city-card:hover {
+  background: #dce9e3;
+  transform: translateY(-3px);
+}
+
+.add-city-icon {
+  font-size: 42px;
+  color: #4b829b;
+  line-height: 1;
+}
+
+.add-city-card strong {
+  font-size: 1.15rem;
+}
+
+.add-city-card span:last-child {
+  font-size: 0.85rem;
+  color: #667f75;
+}
+
+@media (max-width: 650px) {
+  #favorites .favorite-card,
+  .add-city-card {
+    flex-basis: 85%;
+  }
+}
