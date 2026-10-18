@@ -40,12 +40,19 @@ FRESH_SECS = 3600       # reload a sensor if its data is older than this
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=None)
+
+from flask_compress import Compress
+Compress(app)
+
 load_lock = threading.Lock()    # one download at a time
 
+from psycopg_pool import ConnectionPool
+
+pool = ConnectionPool(os.environ["DATABASE_URL"], min_size=2, max_size=10,
+                      open=False, check=ConnectionPool.check_connection)
 
 def db():
-    return psycopg.connect(os.environ["DATABASE_URL"])
-
+    return pool.connection()
 
 # One-time database setup. Every step is safe to repeat. They run one at a time
 # (outside a transaction, which Tiger Data requires for aggregates) and a failing
@@ -94,6 +101,7 @@ COUNT_QUERY = """SELECT count(*) FROM readings
 
 
 def setup_db():
+    pool.open()
     with db() as conn:
         conn.execute(SCHEMA)
         conn.execute("ALTER TABLE sensors ADD COLUMN IF NOT EXISTS loaded_at TIMESTAMPTZ")
@@ -202,6 +210,18 @@ def _replace_and_download(cur, ids, start_ts, to_ts):
                 for col, v in zip(cols, row[1:]):
                     if col and v != "":
                         cp.write_row((row[0], col[0], col[1], float(v)))
+
+area_cache = {}      # rounded box -> (timestamp, feeds)
+AREA_TTL = 900
+
+def cached_area(s, w, n, e):
+    key = tuple(round(v, 3) for v in (s, w, n, e))
+    hit = area_cache.get(key)
+    if hit and time.time() - hit[0] < AREA_TTL:
+        return hit[1]
+    feeds = cached_area(s, w, n, e)
+    area_cache[key] = (time.time(), feeds)
+    return feeds
 
 @app.get("/api/region")
 def region():
@@ -408,6 +428,8 @@ def history():
     return jsonify(status="ready", days=[{"day": d.strftime("%Y-%m-%d"), "avg": round(a, 1),
                           "min": round(lo, 1), "max": round(hi, 1), "sensors": c}
                          for d, a, lo, hi, c in rows])
+    resp.headers["Cache-Control"] = "private, max-age=3600"
+    return resp
 
 if __name__ == "__main__":
     setup_db()
