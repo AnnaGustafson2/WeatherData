@@ -474,1298 +474,1322 @@
     </head>
 
     <main class="about-main">
-      
-<!-- ANIMATED ABOUT PAGE HERO -->
+      <!-- ANIMATED ABOUT PAGE HERO -->
 
-<style>
-  /* Move the page content closer to the header */
-  .about-main {
-    padding-top: 0.75rem !important;
-  }
+      <style>
+        /* Move the page content closer to the header */
+        .about-main {
+          padding-top: 0.75rem !important;
+        }
 
-  .air-hero {
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
-    min-height: 390px;
-    margin: 3rem 0 2rem;
-    padding: clamp(2.5rem, 6vw, 4.5rem);
+        .air-hero {
+          position: relative;
+          overflow: hidden;
+          isolation: isolate;
+          min-height: 390px;
+          margin: 3rem 0 2rem;
+          padding: clamp(2.5rem, 6vw, 4.5rem);
 
-    background: linear-gradient(
-      135deg,
-      #e5f0e8 0%,
-      #e3f0ed 55%,
-      #f1f8f6 100%
-    );
+          background: linear-gradient(
+            135deg,
+            #e5f0e8 0%,
+            #e3f0ed 55%,
+            #f1f8f6 100%
+          );
 
-    border: 2px solid #719c8b;
-    border-radius: 20px;
+          border: 2px solid #719c8b;
+          border-radius: 20px;
 
-    display: flex;
-    align-items: center;
-  }
+          display: flex;
+          align-items: center;
+        }
 
-  .air-hero-content {
-    position: relative;
-    z-index: 2;
-    max-width: 740px;
-    animation: heroFadeIn 0.9s ease-out both;
-  }
+        .air-hero-content {
+          position: relative;
+          z-index: 2;
+          max-width: 740px;
+          animation: heroFadeIn 0.9s ease-out both;
+        }
 
-  .air-hero-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
+        .air-hero-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 20px;
 
-    color: #367c69;
-    font-size: 0.8rem;
-    font-weight: 750;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
+          color: #367c69;
+          font-size: 0.8rem;
+          font-weight: 750;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+        }
 
-  .air-hero-label::before {
-    content: "";
-    width: 22px;
-    height: 2px;
-    background: #367c69;
-  }
+        .air-hero-label::before {
+          content: "";
+          width: 22px;
+          height: 2px;
+          background: #367c69;
+        }
 
-  .air-hero h1 {
-    color: #233d32;
-    font-size: clamp(2.2rem, 5vw, 3.6rem);
-    line-height: 1.14;
-    letter-spacing: -0.045em;
-    margin: 0 0 20px;
-    max-width: 700px;
-  }
+        .air-hero h1 {
+          color: #233d32;
+          font-size: clamp(2.2rem, 5vw, 3.6rem);
+          line-height: 1.14;
+          letter-spacing: -0.045em;
+          margin: 0 0 20px;
+          max-width: 700px;
+        }
 
-  .air-hero-description {
-    color: #506557;
-    font-size: 1.08rem;
-    line-height: 1.8;
-    max-width: 570px;
-    margin: 0;
-  }
+        .air-hero-description {
+          color: #506557;
+          font-size: 1.08rem;
+          line-height: 1.8;
+          max-width: 570px;
+          margin: 0;
+        }
 
-  /* Wind animation layer */
-  .air-hero-art {
-    opacity: .5;
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    pointer-events: none;
-  }
+        /* Wind animation layer */
+        .air-hero-art {
+          opacity: 0.5;
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 0;
+          pointer-events: none;
+        }
 
-  .wind-line {
-    fill: none;
-    stroke: #78b5a0;
-    stroke-width: 3;
-    stroke-linecap: round;
-    stroke-dasharray: 45 30;
-    opacity: 0.60;
+        .wind-line {
+          fill: none;
+          stroke: #78b5a0;
+          stroke-width: 3;
+          stroke-linecap: round;
+          stroke-dasharray: 45 30;
+          opacity: 0.6;
 
-    animation: movingWind 9s linear infinite;
-  }
+          animation: movingWind 9s linear infinite;
+        }
 
-  .wind-line.second {
-    stroke: #569981;
-    stroke-width: 2.5;
-    opacity: 0.45;
-    animation-duration: 13s;
-    animation-direction: reverse;
-  }
+        .wind-line.second {
+          stroke: #569981;
+          stroke-width: 2.5;
+          opacity: 0.45;
+          animation-duration: 13s;
+          animation-direction: reverse;
+        }
 
-  .wind-line.third {
-    stroke: #91c5b0;
-    stroke-width: 3.5;
-    opacity: 0.55;
-    animation-duration: 7s;
-  }
+        .wind-line.third {
+          stroke: #91c5b0;
+          stroke-width: 3.5;
+          opacity: 0.55;
+          animation-duration: 7s;
+        }
 
-  .wind-line.fourth {
-    stroke: #a2cdc0;
-    stroke-width: 2;
-    opacity: 0.6;
-    animation-duration: 17s;
-  }
+        .wind-line.fourth {
+          stroke: #a2cdc0;
+          stroke-width: 2;
+          opacity: 0.6;
+          animation-duration: 17s;
+        }
 
-  /* Additional motion for the entire wind paths */
-  .wind-group {
-    animation: windDrift 7s ease-in-out infinite alternate;
-  }
+        /* Additional motion for the entire wind paths */
+        .wind-group {
+          animation: windDrift 7s ease-in-out infinite alternate;
+        }
 
-  .wind-group.lower {
-    animation-duration: 11s;
-    animation-delay: -3s;
-  }
+        .wind-group.lower {
+          animation-duration: 11s;
+          animation-delay: -3s;
+        }
 
-  .air-particle {
-    fill: #397f69;
-    opacity: 0.65;
-  }
+        .air-particle {
+          fill: #397f69;
+          opacity: 0.65;
+        }
 
-  .air-particle.light {
-    fill: #7cb9a5;
-    opacity: 0.75;
-  }
+        .air-particle.light {
+          fill: #7cb9a5;
+          opacity: 0.75;
+        }
 
-  .air-particle.dark {
-    fill: #2c6e59;
-    opacity: 0.6;
-  }
+        .air-particle.dark {
+          fill: #2c6e59;
+          opacity: 0.6;
+        }
 
-  /* Tiny particle pulsing effect */
-  .particle-pulse {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: particlePulse 3s ease-in-out infinite alternate;
-  }
+        /* Tiny particle pulsing effect */
+        .particle-pulse {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: particlePulse 3s ease-in-out infinite alternate;
+        }
 
-  .particle-pulse.slow {
-    animation-duration: 5s;
-  }
+        .particle-pulse.slow {
+          animation-duration: 5s;
+        }
 
-  .particle-pulse.fast {
-    animation-duration: 2s;
-  }
+        .particle-pulse.fast {
+          animation-duration: 2s;
+        }
 
-  @keyframes movingWind {
-    from {
-      stroke-dashoffset: 0;
-    }
-    to {
-      stroke-dashoffset: -300;
-    }
-  }
+        @keyframes movingWind {
+          from {
+            stroke-dashoffset: 0;
+          }
+          to {
+            stroke-dashoffset: -300;
+          }
+        }
 
-  @keyframes windDrift {
-    from {
-      transform: translateX(-25px) translateY(-8px);
-    }
-    to {
-      transform: translateX(30px) translateY(12px);
-    }
-  }
+        @keyframes windDrift {
+          from {
+            transform: translateX(-25px) translateY(-8px);
+          }
+          to {
+            transform: translateX(30px) translateY(12px);
+          }
+        }
 
-  @keyframes particlePulse {
-    from {
-      transform: scale(0.65);
-      opacity: 0.35;
-    }
-    to {
-      transform: scale(1.3);
-      opacity: 0.85;
-    }
-  }
+        @keyframes particlePulse {
+          from {
+            transform: scale(0.65);
+            opacity: 0.35;
+          }
+          to {
+            transform: scale(1.3);
+            opacity: 0.85;
+          }
+        }
 
-  @keyframes heroFadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+        @keyframes heroFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
 
-  @media (max-width: 650px) {
-    .about-main {
-      padding-top: 0.5rem !important;
-    }
+        @media (max-width: 650px) {
+          .about-main {
+            padding-top: 0.5rem !important;
+          }
 
-    .air-hero {
-      min-height: 340px;
-      padding: 2rem 1.5rem;
-    }
+          .air-hero {
+            min-height: 340px;
+            padding: 2rem 1.5rem;
+          }
 
-    .air-hero-description {
-      font-size: 0.96rem;
-    }
+          .air-hero-description {
+            font-size: 0.96rem;
+          }
 
-    .air-hero-art {
-      opacity: 0.55;
-    }
-  }
+          .air-hero-art {
+            opacity: 0.55;
+          }
+        }
 
-  @media (prefers-reduced-motion: reduce) {
-    .air-hero-content,
-    .wind-line,
-    .wind-group,
-    .particle-pulse {
-      animation: none !important;
-    }
-  }
-</style>
+        @media (prefers-reduced-motion: reduce) {
+          .air-hero-content,
+          .wind-line,
+          .wind-group,
+          .particle-pulse {
+            animation: none !important;
+          }
+        }
+      </style>
 
-<section class="air-hero" aria-labelledby="airHeroTitle">
+      <section class="air-hero" aria-labelledby="airHeroTitle">
+        <svg
+          class="air-hero-art"
+          viewBox="0 0 1000 400"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          <!-- MOVING WIND LINES -->
 
-  <svg class="air-hero-art"
-       viewBox="0 0 1000 400"
-       preserveAspectRatio="xMidYMid slice"
-       aria-hidden="true">
-
-    <!-- MOVING WIND LINES -->
-
-    <g class="wind-group">
-
-      <path class="wind-line"
-        d="M -150 100
+          <g class="wind-group">
+            <path
+              class="wind-line"
+              d="M -150 100
            C 100 -50, 350 220, 600 100
-           S 950 -20, 1200 100" />
+           S 950 -20, 1200 100"
+            />
 
-      <path class="wind-line second"
-        d="M -150 165
+            <path
+              class="wind-line second"
+              d="M -150 165
            C 150 20, 360 305, 650 165
-           S 950 40, 1200 165" />
+           S 950 40, 1200 165"
+            />
+          </g>
 
-    </g>
-
-    <g class="wind-group lower">
-
-      <path class="wind-line third"
-        d="M -150 265
+          <g class="wind-group lower">
+            <path
+              class="wind-line third"
+              d="M -150 265
            C 130 120, 370 390, 650 265
-           S 960 135, 1200 265" />
+           S 960 135, 1200 265"
+            />
 
-      <path class="wind-line fourth"
-        d="M -150 345
+            <path
+              class="wind-line fourth"
+              d="M -150 345
            C 140 190, 380 480, 650 345
-           S 950 220, 1200 345" />
+           S 950 220, 1200 345"
+            />
+          </g>
 
-    </g>
+          <!-- FLOATING PARTICLES AT DIFFERENT SPEEDS -->
 
-    <!-- FLOATING PARTICLES AT DIFFERENT SPEEDS -->
+          <!-- Particle 1: slow -->
+          <circle class="air-particle" r="5">
+            <animateMotion
+              dur="19s"
+              repeatCount="indefinite"
+              path="M -40 80 C 250 10, 500 180, 1050 60"
+            />
+          </circle>
 
-    <!-- Particle 1: slow -->
-    <circle class="air-particle" r="5">
-      <animateMotion dur="19s"
-                     repeatCount="indefinite"
-                     path="M -40 80 C 250 10, 500 180, 1050 60"/>
-    </circle>
+          <!-- Particle 2: faster -->
+          <circle class="air-particle light" r="3.5">
+            <animateMotion
+              dur="9s"
+              repeatCount="indefinite"
+              path="M -30 180 C 260 80, 700 270, 1050 155"
+            />
+          </circle>
 
-    <!-- Particle 2: faster -->
-    <circle class="air-particle light" r="3.5">
-      <animateMotion dur="9s"
-                     repeatCount="indefinite"
-                     path="M -30 180 C 260 80, 700 270, 1050 155"/>
-    </circle>
+          <!-- Particle 3: medium -->
+          <circle class="air-particle dark" r="6">
+            <animateMotion
+              dur="14s"
+              repeatCount="indefinite"
+              path="M -50 290 C 240 130, 650 390, 1050 260"
+            />
+          </circle>
 
-    <!-- Particle 3: medium -->
-    <circle class="air-particle dark" r="6">
-      <animateMotion dur="14s"
-                     repeatCount="indefinite"
-                     path="M -50 290 C 240 130, 650 390, 1050 260"/>
-    </circle>
+          <!-- Particle 4: very slow -->
+          <circle class="air-particle light" r="4">
+            <animateMotion
+              dur="25s"
+              repeatCount="indefinite"
+              path="M -30 350 C 350 245, 650 470, 1050 330"
+            />
+          </circle>
 
-    <!-- Particle 4: very slow -->
-    <circle class="air-particle light" r="4">
-      <animateMotion dur="25s"
-                     repeatCount="indefinite"
-                     path="M -30 350 C 350 245, 650 470, 1050 330"/>
-    </circle>
+          <!-- Particle 5: fast -->
+          <circle class="air-particle" r="3">
+            <animateMotion
+              dur="7s"
+              repeatCount="indefinite"
+              path="M -40 120 C 300 40, 650 230, 1050 115"
+            />
+          </circle>
 
-    <!-- Particle 5: fast -->
-    <circle class="air-particle" r="3">
-      <animateMotion dur="7s"
-                     repeatCount="indefinite"
-                     path="M -40 120 C 300 40, 650 230, 1050 115"/>
-    </circle>
+          <!-- Particle 6 -->
+          <circle class="air-particle dark" r="4.5">
+            <animateMotion
+              dur="16s"
+              repeatCount="indefinite"
+              path="M -30 220 C 300 105, 680 345, 1050 200"
+            />
+          </circle>
 
-    <!-- Particle 6 -->
-    <circle class="air-particle dark" r="4.5">
-      <animateMotion dur="16s"
-                     repeatCount="indefinite"
-                     path="M -30 220 C 300 105, 680 345, 1050 200"/>
-    </circle>
+          <!-- Particle 7 -->
+          <circle class="air-particle light" r="2.5">
+            <animateMotion
+              dur="11s"
+              repeatCount="indefinite"
+              path="M -40 55 C 270 -40, 710 140, 1050 45"
+            />
+          </circle>
 
-    <!-- Particle 7 -->
-    <circle class="air-particle light" r="2.5">
-      <animateMotion dur="11s"
-                     repeatCount="indefinite"
-                     path="M -40 55 C 270 -40, 710 140, 1050 45"/>
-    </circle>
+          <!-- Particle 8 -->
+          <circle class="air-particle" r="5">
+            <animateMotion
+              dur="22s"
+              repeatCount="indefinite"
+              path="M -35 370 C 280 260, 740 440, 1050 355"
+            />
+          </circle>
+        </svg>
 
-    <!-- Particle 8 -->
-    <circle class="air-particle" r="5">
-      <animateMotion dur="22s"
-                     repeatCount="indefinite"
-                     path="M -35 370 C 280 260, 740 440, 1050 355"/>
-    </circle>
+        <!-- HERO CONTENT -->
 
-  </svg>
+        <div class="air-hero-content">
+          <div class="air-hero-label">THE AIR YOU SHARE</div>
 
-  <!-- HERO CONTENT -->
+          <h1 id="airHeroTitle">
+            You can't always see it.<br />
+            But you're breathing it.
+          </h1>
 
-  <div class="air-hero-content">
+          <p class="air-hero-description">
+            Discover the invisible particles in our atmosphere, how they affect
+            our health, and what we can do to protect ourselves.
+          </p>
+        </div>
+      </section>
 
-    <div class="air-hero-label">
-      THE AIR YOU SHARE
-    </div>
+      <!-- END ANIMATED HERO -->
 
-    <h1 id="airHeroTitle">
-      You can't always see it.<br>
-      But you're breathing it.
-    </h1>
+      <!-- ============================= -->
+      <!-- INTERACTIVE AIR QUALITY GUIDE -->
+      <!-- ============================= -->
 
-    <p class="air-hero-description">
-      Discover the invisible particles in our atmosphere,
-      how they affect our health, and what we can do
-      to protect ourselves.
-    </p>
+      <!-- #style n shiiii  -->
+      <style>
+        .aqi-guide {
+          margin-top: 3.5rem;
+        }
 
-  </div>
+        .aqi-widget {
+          background: #ffffff;
+          border: 1px solid var(--border, #dce5ea);
+          border-radius: 20px;
+          padding: 25px;
+          margin-top: 22px;
+          box-shadow: 0 6px 24px rgba(30, 60, 50, 0.045);
+        }
 
-</section>
+        .aqi-widget h3 {
+          margin: 0 0 6px;
+          font-size: 1.35rem;
+        }
 
-<!-- END ANIMATED HERO -->
+        .aqi-subtitle {
+          color: var(--muted, #5e6c77);
+          font-size: 0.92rem;
+          margin-bottom: 23px;
+        }
 
+        .aqi-bar {
+          display: grid;
+          grid-template-columns: repeat(6, minmax(0, 1fr));
+          gap: 6px;
+          margin-bottom: 24px;
+        }
 
+        .aqi-option {
+          cursor: pointer;
+          background: transparent;
+          border: none;
+          padding: 0;
+          font: inherit;
+          color: var(--text, #23313d);
+          min-width: 0;
+          text-align: center;
+        }
 
-<!-- ============================= -->
-<!-- INTERACTIVE AIR QUALITY GUIDE -->
-<!-- ============================= -->
+        .aqi-color {
+          display: block;
+          height: 24px;
+          background: var(--level-color);
+          border-radius: 5px;
+          transition:
+            transform 0.2s,
+            box-shadow 0.2s;
+        }
 
-<!-- #style n shiiii  -->
-<style>
-  .aqi-guide {
-    margin-top: 3.5rem;
-  }
+        .aqi-option:hover .aqi-color {
+          transform: translateY(-3px);
+        }
 
-  .aqi-widget {
-    background: #ffffff;
-    border: 1px solid var(--border, #dce5ea);
-    border-radius: 20px;
-    padding: 25px;
-    margin-top: 22px;
-    box-shadow: 0 6px 24px rgba(30, 60, 50, 0.045);
-  }
+        .aqi-option[aria-pressed="true"] .aqi-color {
+          box-shadow:
+            0 0 0 2px white,
+            0 0 0 4px var(--level-color);
+          transform: translateY(-2px);
+        }
 
-  .aqi-widget h3 {
-    margin: 0 0 6px;
-    font-size: 1.35rem;
-  }
+        .aqi-range {
+          display: block;
+          margin-top: 9px;
+          font-size: 0.75rem;
+          font-weight: 650;
+        }
 
-  .aqi-subtitle {
-    color: var(--muted, #5e6c77);
-    font-size: 0.92rem;
-    margin-bottom: 23px;
-  }
+        .aqi-details {
+          background: #fde8e8;
+          border-radius: 16px;
+          padding: 24px;
+          transition: background-color 0.25s;
+        }
 
-  .aqi-bar {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 6px;
-    margin-bottom: 24px;
-  }
+        .aqi-details-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 15px;
+          margin-bottom: 18px;
+        }
 
-  .aqi-option {
-    cursor: pointer;
-    background: transparent;
-    border: none;
-    padding: 0;
-    font: inherit;
-    color: var(--text, #23313d);
-    min-width: 0;
-    text-align: center;
-  }
+        .aqi-heading-group {
+          display: flex;
+          gap: 14px;
+          align-items: center;
+        }
 
-  .aqi-color {
-    display: block;
-    height: 24px;
-    background: var(--level-color);
-    border-radius: 5px;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
+        .aqi-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 54px;
+          height: 54px;
+          flex-shrink: 0;
+          border-radius: 14px;
+          background: #d44d50;
+          color: white;
+          font-size: 26px;
+        }
 
-  .aqi-option:hover .aqi-color {
-    transform: translateY(-3px);
-  }
+        .aqi-category {
+          font-size: 0.82rem;
+          font-weight: 600;
+          color: #475569;
+          margin: 0 0 3px;
+        }
 
-  .aqi-option[aria-pressed="true"] .aqi-color {
-    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--level-color);
-    transform: translateY(-2px);
-  }
+        .aqi-headline {
+          font-size: clamp(1.25rem, 3vw, 1.65rem);
+          font-weight: 750;
+          color: #1f2937;
+          line-height: 1.25;
+          margin: 0;
+        }
 
-  .aqi-range {
-    display: block;
-    margin-top: 9px;
-    font-size: 0.75rem;
-    font-weight: 650;
-  }
+        .aqi-number {
+          font-size: 0.9rem;
+          font-weight: 750;
+          color: #d44d50;
+          white-space: nowrap;
+        }
 
-  .aqi-details {
-    background: #fde8e8;
-    border-radius: 16px;
-    padding: 24px;
-    transition: background-color 0.25s;
-  }
+        .aqi-description {
+          font-size: 0.95rem;
+          line-height: 1.7;
+          color: #334155;
+          margin-bottom: 18px;
+        }
 
-  .aqi-details-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 18px;
-  }
+        .aqi-advice {
+          border-top: 1px solid rgba(60, 70, 75, 0.15);
+          padding-top: 17px;
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
 
-  .aqi-heading-group {
-    display: flex;
-    gap: 14px;
-    align-items: center;
-  }
+        .aqi-check {
+          color: #d44d50;
+          font-size: 22px;
+          font-weight: bold;
+          flex-shrink: 0;
+        }
 
-  .aqi-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 54px;
-    height: 54px;
-    flex-shrink: 0;
-    border-radius: 14px;
-    background: #d44d50;
-    color: white;
-    font-size: 26px;
-  }
+        .aqi-advice p {
+          margin: 0;
+          color: #334155;
+          line-height: 1.6;
+          font-size: 0.92rem;
+          font-weight: 550;
+        }
 
-  .aqi-category {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #475569;
-    margin: 0 0 3px;
-  }
+        .aqi-footnote {
+          color: var(--muted, #5e6c77);
+          font-size: 0.79rem;
+          line-height: 1.6;
+          margin-top: 17px;
+        }
 
-  .aqi-headline {
-    font-size: clamp(1.25rem, 3vw, 1.65rem);
-    font-weight: 750;
-    color: #1f2937;
-    line-height: 1.25;
-    margin: 0;
-  }
+        @media (max-width: 600px) {
+          .aqi-widget {
+            padding: 16px;
+          }
 
-  .aqi-number {
-    font-size: 0.9rem;
-    font-weight: 750;
-    color: #d44d50;
-    white-space: nowrap;
-  }
+          .aqi-bar {
+            gap: 4px;
+          }
 
-  .aqi-description {
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: #334155;
-    margin-bottom: 18px;
-  }
+          .aqi-color {
+            height: 19px;
+          }
 
-  .aqi-advice {
-    border-top: 1px solid rgba(60, 70, 75, 0.15);
-    padding-top: 17px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
+          .aqi-range {
+            font-size: 0.62rem;
+          }
 
-  .aqi-check {
-    color: #d44d50;
-    font-size: 22px;
-    font-weight: bold;
-    flex-shrink: 0;
-  }
+          .aqi-details {
+            padding: 17px;
+          }
 
-  .aqi-advice p {
-    margin: 0;
-    color: #334155;
-    line-height: 1.6;
-    font-size: 0.92rem;
-    font-weight: 550;
-  }
+          .aqi-details-header {
+            align-items: flex-start;
+          }
 
-  .aqi-footnote {
-    color: var(--muted, #5e6c77);
-    font-size: 0.79rem;
-    line-height: 1.6;
-    margin-top: 17px;
-  }
+          .aqi-icon {
+            width: 42px;
+            height: 42px;
+            font-size: 20px;
+          }
 
-  @media (max-width: 600px) {
-    .aqi-widget {
-      padding: 16px;
-    }
+          .aqi-number {
+            font-size: 0.72rem;
+          }
+        }
+      </style>
 
-    .aqi-bar {
-      gap: 4px;
-    }
+      <section class="about-section aqi-guide" id="aqi-guide">
+        <p class="eyebrow">Your air, your health</p>
+        <h2>What does your air quality mean?</h2>
 
-    .aqi-color {
-      height: 19px;
-    }
+        <p>
+          Air pollution isn't always visible, but it can affect your health. The
+          Air Quality Index (AQI) translates pollution measurements into six
+          categories to help you understand when precautions are needed.
+        </p>
 
-    .aqi-range {
-      font-size: 0.62rem;
-    }
+        <div class="aqi-widget">
+          <h3>How healthy is your air?</h3>
+          <p class="aqi-subtitle">
+            Select an air quality level to learn what it means for your health.
+          </p>
 
-    .aqi-details {
-      padding: 17px;
-    }
-
-    .aqi-details-header {
-      align-items: flex-start;
-    }
-
-    .aqi-icon {
-      width: 42px;
-      height: 42px;
-      font-size: 20px;
-    }
-
-    .aqi-number {
-      font-size: 0.72rem;
-    }
-  }
-</style>
-
-<section class="about-section aqi-guide" id="aqi-guide">
-
-  <p class="eyebrow">Your air, your health</p>
-  <h2>What does your air quality mean?</h2>
-
-  <p>
-    Air pollution isn't always visible, but it can affect
-    your health. The Air Quality Index (AQI) translates
-    pollution measurements into six categories to help
-    you understand when precautions are needed.
-  </p>
-
-  <div class="aqi-widget">
-
-    <h3>How healthy is your air?</h3>
-    <p class="aqi-subtitle">
-      Select an air quality level to learn what it
-      means for your health.
-    </p>
-
-    <!-- aqi scale with pretty colors! clickabe ofc -->
-    <div class="aqi-bar" role="group" aria-label="Air quality levels">
-
-      <button class="aqi-option"
+          <!-- aqi scale with pretty colors! clickabe ofc -->
+          <div class="aqi-bar" role="group" aria-label="Air quality levels">
+            <button
+              class="aqi-option"
               style="--level-color: #28986a"
               data-level="0"
-              aria-pressed="false">
-        <span class="aqi-color"></span>
-        <span class="aqi-range">0–50</span>
-      </button>
+              aria-pressed="false"
+            >
+              <span class="aqi-color"></span>
+              <span class="aqi-range">0–50</span>
+            </button>
 
-      <button class="aqi-option"
+            <button
+              class="aqi-option"
               style="--level-color: #b48a15"
               data-level="1"
-              aria-pressed="false">
-        <span class="aqi-color"></span>
-        <span class="aqi-range">51–100</span>
-      </button>
+              aria-pressed="false"
+            >
+              <span class="aqi-color"></span>
+              <span class="aqi-range">51–100</span>
+            </button>
 
-      <button class="aqi-option"
+            <button
+              class="aqi-option"
               style="--level-color: #e58030"
               data-level="2"
-              aria-pressed="false">
-        <span class="aqi-color"></span>
-        <span class="aqi-range">101–150</span>
-      </button>
+              aria-pressed="false"
+            >
+              <span class="aqi-color"></span>
+              <span class="aqi-range">101–150</span>
+            </button>
 
-      <button class="aqi-option"
+            <button
+              class="aqi-option"
               style="--level-color: #d44d50"
               data-level="3"
-              aria-pressed="true">
-        <span class="aqi-color"></span>
-        <span class="aqi-range">151–200</span>
-      </button>
+              aria-pressed="true"
+            >
+              <span class="aqi-color"></span>
+              <span class="aqi-range">151–200</span>
+            </button>
 
-      <button class="aqi-option"
+            <button
+              class="aqi-option"
               style="--level-color: #8757ad"
               data-level="4"
-              aria-pressed="false">
-        <span class="aqi-color"></span>
-        <span class="aqi-range">201–300</span>
-      </button>
+              aria-pressed="false"
+            >
+              <span class="aqi-color"></span>
+              <span class="aqi-range">201–300</span>
+            </button>
 
-      <button class="aqi-option"
+            <button
+              class="aqi-option"
               style="--level-color: #81324d"
               data-level="5"
-              aria-pressed="false">
-        <span class="aqi-color"></span>
-        <span class="aqi-range">301+</span>
-      </button>
-
-    </div>
-
-    <!-- changing da card -->
-    <div class="aqi-details" id="aqiDetails"
-         aria-live="polite">
-
-      <div class="aqi-details-header">
-
-        <div class="aqi-heading-group">
-          <div class="aqi-icon" id="aqiIcon"
-               aria-hidden="true">
-            ⚠
+              aria-pressed="false"
+            >
+              <span class="aqi-color"></span>
+              <span class="aqi-range">301+</span>
+            </button>
           </div>
 
-          <div>
-            <p class="aqi-category" id="aqiCategory">
-              Unhealthy
+          <!-- changing da card -->
+          <div class="aqi-details" id="aqiDetails" aria-live="polite">
+            <div class="aqi-details-header">
+              <div class="aqi-heading-group">
+                <div class="aqi-icon" id="aqiIcon" aria-hidden="true">⚠</div>
+
+                <div>
+                  <p class="aqi-category" id="aqiCategory">Unhealthy</p>
+                  <h3 class="aqi-headline" id="aqiHeadline">
+                    Your lungs need a break.
+                  </h3>
+                </div>
+              </div>
+
+              <span class="aqi-number" id="aqiNumber"> AQI 151–200 </span>
+            </div>
+
+            <p class="aqi-description" id="aqiDescription">
+              Health effects become more likely for everyone, especially people
+              with heart or lung conditions.
             </p>
-            <h3 class="aqi-headline" id="aqiHeadline">
-              Your lungs need a break.
-            </h3>
+
+            <div class="aqi-advice">
+              <span class="aqi-check" id="aqiCheck" aria-hidden="true">✓</span>
+              <p id="aqiAdvice">
+                Reduce prolonged outdoor exertion. Sensitive groups should avoid
+                prolonged or strenuous outdoor activity.
+              </p>
+            </div>
+          </div>
+
+          <p class="aqi-footnote">
+            These categories use the U.S. Air Quality Index. AQI is not the same
+            as a raw PM2.5 concentration measured in µg/m³. Recommendations are
+            general; check local official guidance for current conditions.
+            <a
+              href="https://www.airnow.gov/aqi/aqi-basics/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Learn more at AirNow ↗
+            </a>
+          </p>
+        </div>
+      </section>
+
+      <script>
+        // style and info abt air on the little card, taken from the US EPA AQI guide which is totes awesome btw
+        const aqiLevels = [
+          {
+            category: "Good",
+            range: "0–50",
+            headline: "Breathe easy.",
+            description:
+              "Air quality is satisfactory, and air pollution poses little or no risk.",
+            advice:
+              "Enjoy your usual outdoor activities. It's a great day for a walk, run, or picnic!",
+            color: "#28986a",
+            background: "#e5f5eb",
+            icon: "☀",
+          },
+          {
+            category: "Moderate",
+            range: "51–100",
+            headline: "Mostly clear skies.",
+            description:
+              "Air quality is acceptable for most people, although some unusually sensitive individuals may experience effects.",
+            advice:
+              "Most people can continue normal activities. If you're unusually sensitive to air pollution, watch for symptoms.",
+            color: "#b48a15",
+            background: "#fff5ce",
+            icon: "☁",
+          },
+          {
+            category: "Unhealthy for Sensitive Groups",
+            range: "101–150",
+            headline: "Take it a little easier.",
+            description:
+              "Sensitive groups, including children, older adults, and people with heart or lung conditions, face greater risks.",
+            advice:
+              "Sensitive groups should reduce prolonged or strenuous outdoor activity. Others can generally continue normal activities.",
+            color: "#e58030",
+            background: "#fff0df",
+            icon: "♡",
+          },
+          {
+            category: "Unhealthy",
+            range: "151–200",
+            headline: "Your lungs need a break.",
+            description:
+              "Health effects become more likely for everyone, especially people with heart or lung conditions.",
+            advice:
+              "Reduce prolonged outdoor exertion. Sensitive groups should avoid prolonged or strenuous outdoor activity.",
+            color: "#d44d50",
+            background: "#fde8e8",
+            icon: "⚠",
+          },
+          {
+            category: "Very Unhealthy",
+            range: "201–300",
+            headline: "Keep your exposure low.",
+            description:
+              "This level represents a health alert. The risk of health effects is increased for everyone.",
+            advice:
+              "Avoid strenuous outdoor activities and spend more time in cleaner indoor air. Consider using a HEPA air cleaner.",
+            color: "#8757ad",
+            background: "#f3e9fc",
+            icon: "⌂",
+          },
+          {
+            category: "Hazardous",
+            range: "301+",
+            headline: "The air is dangerous.",
+            description:
+              "Emergency-level pollution conditions can affect everyone, including healthy individuals.",
+            advice:
+              "Avoid outdoor physical activity and stay in filtered indoor air. For heavy particle pollution, if you must go outside, a properly fitted N95 respirator can help reduce exposure.",
+            color: "#81324d",
+            background: "#f8e6ec",
+            icon: "!",
+          },
+        ];
+
+        // updates when color clicked
+        const aqiButtons = document.querySelectorAll(".aqi-option");
+
+        function selectAqiLevel(index) {
+          const level = aqiLevels[index];
+
+          document.getElementById("aqiCategory").textContent = level.category;
+
+          document.getElementById("aqiNumber").textContent =
+            "AQI " + level.range;
+
+          document.getElementById("aqiHeadline").textContent = level.headline;
+
+          document.getElementById("aqiDescription").textContent =
+            level.description;
+
+          document.getElementById("aqiAdvice").textContent = level.advice;
+
+          document.getElementById("aqiIcon").textContent = level.icon;
+
+          document.getElementById("aqiDetails").style.backgroundColor =
+            level.background;
+
+          document.getElementById("aqiIcon").style.backgroundColor =
+            level.color;
+
+          document.getElementById("aqiNumber").style.color = level.color;
+
+          document.getElementById("aqiCheck").style.color = level.color;
+
+          aqiButtons.forEach((button, buttonIndex) => {
+            button.setAttribute("aria-pressed", String(buttonIndex === index));
+          });
+        }
+
+        aqiButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            selectAqiLevel(Number(button.dataset.level));
+          });
+        });
+
+        //we can set our default to anything its just set to 1 aka safe for now
+        selectAqiLevel(1);
+      </script>
+
+      <!-- END OF INTERACTIVE AIR QUALITY GUIDE -->
+
+      <!--info carousel w pretty colors, mayb add cuter icons rn ts is emojis -->
+
+      <style>
+        .learn-carousel {
+          margin-top: 30px;
+          padding: 30px;
+          background: #eeece5;
+          border: 1px solid #d4d2c8;
+          border-radius: 22px;
+        }
+
+        .learn-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+
+        .learn-carousel h2 {
+          margin: 0;
+          color: #263e36;
+          font-size: 1.7rem;
+        }
+
+        .learn-label {
+          color: #568376;
+          font-size: 0.78rem;
+          font-weight: 700;
+          letter-spacing: 2px;
+          margin-bottom: 8px;
+        }
+
+        .learn-arrows {
+          display: flex;
+          gap: 8px;
+        }
+
+        .learn-arrows button {
+          width: 40px;
+          height: 40px;
+          padding: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          border-radius: 50%;
+          border: 1px solid #c7cec5;
+          background: white;
+          color: #315d50;
+          font-size: 24px;
+          line-height: 1;
+          cursor: pointer;
+        }
+
+        #learnPrev,
+        #learnNext {
+          padding-bottom: 3px;
+        }
+
+        .learn-arrows button:hover {
+          background: #315d50;
+          color: white;
+        }
+
+        .learn-track {
+          display: flex;
+          gap: 16px;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          scroll-behavior: smooth;
+          scrollbar-width: none;
+          padding: 5px 2px 12px;
+        }
+
+        .learn-track::-webkit-scrollbar {
+          display: none;
+        }
+
+        .learn-card {
+          flex: 0 0 calc((100% - 48px) / 3.35);
+          scroll-snap-align: start;
+          border-radius: 18px;
+          padding: 22px;
+          min-height: 335px;
+          display: flex;
+          flex-direction: column;
+          color: #263e36;
+        }
+
+        .learn-card:nth-child(1) {
+          background: #dcebe1;
+        }
+        .learn-card:nth-child(2) {
+          background: #dcebf0;
+        }
+        .learn-card:nth-child(3) {
+          background: #f3e7d5;
+        }
+        .learn-card:nth-child(4) {
+          background: #e9e0ed;
+        }
+        .learn-card:nth-child(5) {
+          background: #f3e4e1;
+        }
+        .learn-card:nth-child(6) {
+          background: #e3ebdd;
+        }
+
+        .learn-number {
+          font-size: 1.8rem;
+          font-weight: 750;
+          color: #4a776c;
+        }
+
+        .learn-illustration {
+          align-self: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 120px;
+          height: 120px;
+          margin: 8px 0 14px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.42);
+          font-size: 64px;
+        }
+
+        .learn-card h3 {
+          margin: 0 0 9px;
+          font-size: 1.15rem;
+          color: #263e36;
+          line-height: 1.3;
+        }
+
+        .learn-card p {
+          font-size: 0.85rem;
+          line-height: 1.6;
+          color: #506157;
+          margin: 0 0 15px;
+        }
+
+        .learn-card a {
+          margin-top: auto;
+          color: #276d59;
+          font-size: 0.85rem;
+          font-weight: 700;
+          text-decoration: none;
+        }
+
+        .learn-card a:hover {
+          text-decoration: underline;
+        }
+
+        .learn-dots {
+          display: flex;
+          justify-content: center;
+          gap: 8px;
+          margin-top: 15px;
+        }
+
+        .learn-dot {
+          width: 9px;
+          height: 9px;
+          padding: 0;
+          border-radius: 50%;
+          border: none;
+          background: #bec8bf;
+          cursor: pointer;
+        }
+
+        .learn-dot.active {
+          background: #3e7565;
+          width: 23px;
+          border-radius: 8px;
+        }
+
+        @media (max-width: 750px) {
+          .learn-carousel {
+            padding: 20px;
+          }
+          .learn-card {
+            flex-basis: 65%;
+          }
+          .learn-carousel h2 {
+            font-size: 1.3rem;
+          }
+          .learn-illustration {
+            width: 100px;
+            height: 100px;
+            font-size: 54px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .learn-track {
+            scroll-behavior: auto;
+          }
+        }
+
+        /* read more */
+        .learn-more {
+          margin-top: auto;
+          padding: 0;
+          background: none;
+          border: none;
+          color: #276d59;
+          font: inherit;
+          font-size: 0.85rem;
+          font-weight: 700;
+          text-align: left;
+          cursor: pointer;
+        }
+
+        .learn-more:hover {
+          text-decoration: underline;
+        }
+
+        /* Expanded information panel */
+        .learn-expanded {
+          position: relative;
+          margin-top: 22px;
+          padding: 27px;
+          background: #ffffff;
+          border: 1px solid #c7d6cd;
+          border-radius: 18px;
+          color: #435c50;
+          line-height: 1.75;
+          animation: learnAppear 0.3s ease;
+        }
+
+        .learn-expanded[hidden] {
+          display: none;
+        }
+
+        .learn-expanded h3 {
+          margin: 0 40px 15px 0;
+          font-size: 1.4rem;
+          color: #263e36;
+        }
+
+        .learn-expanded p {
+          margin-bottom: 12px;
+        }
+
+        .learn-expanded ul {
+          padding-left: 22px;
+        }
+
+        .learn-expanded li {
+          margin-bottom: 9px;
+        }
+
+        .learn-close {
+          position: absolute;
+          top: 15px;
+          right: 17px;
+          border: none;
+          background: #edf3ee;
+          color: #315d50;
+          border-radius: 50%;
+          width: 34px;
+          height: 34px;
+          font-size: 23px;
+          cursor: pointer;
+        }
+
+        @keyframes learnAppear {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .learn-expanded {
+            animation: none;
+          }
+        }
+        /* Make PM2.5 popup boxes more compact */
+        .learn-expanded .about-note {
+          padding: 12px;
+        }
+
+        .learn-expanded .about-grid {
+          gap: 10px;
+        }
+
+        .learn-expanded .about-note h3 {
+          margin-bottom: 5px;
+        }
+
+        .learn-expanded .about-note p {
+          margin-bottom: 0px;
+        }
+      </style>
+
+      <section class="learn-carousel" aria-label="Explore air quality topics">
+        <p class="learn-label">EXPLORE THE BASICS</p>
+
+        <div class="learn-header">
+          <h2>Learn more about air quality</h2>
+
+          <div class="learn-arrows">
+            <button type="button" id="learnPrev" aria-label="Previous slide">
+              ‹
+            </button>
+            <button type="button" id="learnNext" aria-label="Next slide">
+              ›
+            </button>
           </div>
         </div>
 
-        <span class="aqi-number" id="aqiNumber">
-          AQI 151–200
-        </span>
-
-      </div>
-
-      <p class="aqi-description" id="aqiDescription">
-        Health effects become more likely for everyone,
-        especially people with heart or lung conditions.
-      </p>
-
-      <div class="aqi-advice">
-        <span class="aqi-check" id="aqiCheck"
-              aria-hidden="true">✓</span>
-        <p id="aqiAdvice">
-          Reduce prolonged outdoor exertion. Sensitive groups
-          should avoid prolonged or strenuous outdoor activity.
-        </p>
-      </div>
-
-    </div>
-
-    <p class="aqi-footnote">
-      These categories use the U.S. Air Quality Index.
-      AQI is not the same as a raw PM2.5 concentration
-      measured in µg/m³. Recommendations are general;
-      check local official guidance for current conditions.
-      <a href="https://www.airnow.gov/aqi/aqi-basics/"
-         target="_blank" rel="noopener noreferrer">
-        Learn more at AirNow ↗
-      </a>
-    </p>
-
-  </div>
-</section>
-
-<script>
-  // style and info abt air on the little card, taken from the US EPA AQI guide which is totes awesome btw
-  const aqiLevels = [
-    {
-      category: "Good",
-      range: "0–50",
-      headline: "Breathe easy.",
-      description:
-        "Air quality is satisfactory, and air pollution poses little or no risk.",
-      advice:
-        "Enjoy your usual outdoor activities. It's a great day for a walk, run, or picnic!",
-      color: "#28986a",
-      background: "#e5f5eb",
-      icon: "☀"
-    },
-    {
-      category: "Moderate",
-      range: "51–100",
-      headline: "Mostly clear skies.",
-      description:
-        "Air quality is acceptable for most people, although some unusually sensitive individuals may experience effects.",
-      advice:
-        "Most people can continue normal activities. If you're unusually sensitive to air pollution, watch for symptoms.",
-      color: "#b48a15",
-      background: "#fff5ce",
-      icon: "☁"
-    },
-    {
-      category: "Unhealthy for Sensitive Groups",
-      range: "101–150",
-      headline: "Take it a little easier.",
-      description:
-        "Sensitive groups, including children, older adults, and people with heart or lung conditions, face greater risks.",
-      advice:
-        "Sensitive groups should reduce prolonged or strenuous outdoor activity. Others can generally continue normal activities.",
-      color: "#e58030",
-      background: "#fff0df",
-      icon: "♡"
-    },
-    {
-      category: "Unhealthy",
-      range: "151–200",
-      headline: "Your lungs need a break.",
-      description:
-        "Health effects become more likely for everyone, especially people with heart or lung conditions.",
-      advice:
-        "Reduce prolonged outdoor exertion. Sensitive groups should avoid prolonged or strenuous outdoor activity.",
-      color: "#d44d50",
-      background: "#fde8e8",
-      icon: "⚠"
-    },
-    {
-      category: "Very Unhealthy",
-      range: "201–300",
-      headline: "Keep your exposure low.",
-      description:
-        "This level represents a health alert. The risk of health effects is increased for everyone.",
-      advice:
-        "Avoid strenuous outdoor activities and spend more time in cleaner indoor air. Consider using a HEPA air cleaner.",
-      color: "#8757ad",
-      background: "#f3e9fc",
-      icon: "⌂"
-    },
-    {
-      category: "Hazardous",
-      range: "301+",
-      headline: "The air is dangerous.",
-      description:
-        "Emergency-level pollution conditions can affect everyone, including healthy individuals.",
-      advice:
-        "Avoid outdoor physical activity and stay in filtered indoor air. For heavy particle pollution, if you must go outside, a properly fitted N95 respirator can help reduce exposure.",
-      color: "#81324d",
-      background: "#f8e6ec",
-      icon: "!"
-    }
-  ];
-
-  // updates when color clicked
-  const aqiButtons =
-    document.querySelectorAll(".aqi-option");
-
-  function selectAqiLevel(index) {
-    const level = aqiLevels[index];
-
-    document.getElementById("aqiCategory").textContent =
-      level.category;
-
-    document.getElementById("aqiNumber").textContent =
-      "AQI " + level.range;
-
-    document.getElementById("aqiHeadline").textContent =
-      level.headline;
-
-    document.getElementById("aqiDescription").textContent =
-      level.description;
-
-    document.getElementById("aqiAdvice").textContent =
-      level.advice;
-
-    document.getElementById("aqiIcon").textContent =
-      level.icon;
-
-    document.getElementById("aqiDetails").style.backgroundColor =
-      level.background;
-
-    document.getElementById("aqiIcon").style.backgroundColor =
-      level.color;
-
-    document.getElementById("aqiNumber").style.color =
-      level.color;
-
-    document.getElementById("aqiCheck").style.color =
-      level.color;
-
-    aqiButtons.forEach((button, buttonIndex) => {
-      button.setAttribute(
-        "aria-pressed",
-        String(buttonIndex === index)
-      );
-    });
-  }
-
-  aqiButtons.forEach(button => {
-    button.addEventListener("click", () => {
-      selectAqiLevel(Number(button.dataset.level));
-    });
-  });
-
-  //we can set our default to anything its just set to 1 aka safe for now
-  selectAqiLevel(1);
-</script>
-
-<!-- END OF INTERACTIVE AIR QUALITY GUIDE -->
-
-      
-
-
-
-<!--info carousel w pretty colors, mayb add cuter icons rn ts is emojis -->
-
-<style>
-  .learn-carousel {
-    margin-top: 30px;
-    padding: 30px;
-    background: #eeece5;
-    border: 1px solid #d4d2c8;
-    border-radius: 22px;
-  }
-
-  .learn-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-  }
-
-  .learn-carousel h2 {
-    margin: 0;
-    color: #263e36;
-    font-size: 1.7rem;
-  }
-
-  .learn-label {
-    color: #568376;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    margin-bottom: 8px;
-  }
-
-  .learn-arrows {
-    display: flex;
-    gap: 8px;
-  }
-
-  .learn-arrows button {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid #c7cec5;
-    background: white;
-    color: #315d50;
-    font-size: 24px;
-    cursor: pointer;
-  }
-
-  .learn-arrows button:hover {
-    background: #315d50;
-    color: white;
-  }
-
-  .learn-track {
-    display: flex;
-    gap: 16px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    padding: 5px 2px 12px;
-  }
-
-  .learn-track::-webkit-scrollbar {
-    display: none;
-  }
-
-  .learn-card {
-    flex: 0 0 calc((100% - 48px) / 3.35);
-    scroll-snap-align: start;
-    border-radius: 18px;
-    padding: 22px;
-    min-height: 335px;
-    display: flex;
-    flex-direction: column;
-    color: #263e36;
-  }
-
-  .learn-card:nth-child(1) { background: #dcebe1; }
-  .learn-card:nth-child(2) { background: #dcebf0; }
-  .learn-card:nth-child(3) { background: #f3e7d5; }
-  .learn-card:nth-child(4) { background: #e9e0ed; }
-  .learn-card:nth-child(5) { background: #f3e4e1; }
-  .learn-card:nth-child(6) { background: #e3ebdd; }
-
-  .learn-number {
-    font-size: 1.8rem;
-    font-weight: 750;
-    color: #4a776c;
-  }
-
-  .learn-illustration {
-    align-self: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 120px;
-    height: 120px;
-    margin: 8px 0 14px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.42);
-    font-size: 64px;
-  }
-
-  .learn-card h3 {
-    margin: 0 0 9px;
-    font-size: 1.15rem;
-    color: #263e36;
-    line-height: 1.3;
-  }
-
-  .learn-card p {
-    font-size: 0.85rem;
-    line-height: 1.6;
-    color: #506157;
-    margin: 0 0 15px;
-  }
-
-  .learn-card a {
-    margin-top: auto;
-    color: #276d59;
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-decoration: none;
-  }
-
-  .learn-card a:hover {
-    text-decoration: underline;
-  }
-
-  .learn-dots {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 15px;
-  }
-
-  .learn-dot {
-    width: 9px;
-    height: 9px;
-    padding: 0;
-    border-radius: 50%;
-    border: none;
-    background: #bec8bf;
-    cursor: pointer;
-  }
-
-  .learn-dot.active {
-    background: #3e7565;
-    width: 23px;
-    border-radius: 8px;
-  }
-
-  @media (max-width: 750px) {
-    .learn-carousel { padding: 20px; }
-    .learn-card { flex-basis: 65%; }
-    .learn-carousel h2 { font-size: 1.3rem; }
-    .learn-illustration {
-      width: 100px;
-      height: 100px;
-      font-size: 54px;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .learn-track { scroll-behavior: auto; }
-  }
-  
-/* read more */
-.learn-more {
-  margin-top: auto;
-  padding: 0;
-  background: none;
-  border: none;
-  color: #276d59;
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-align: left;
-  cursor: pointer;
-}
-
-.learn-more:hover {
-  text-decoration: underline;
-}
-
-/* Expanded information panel */
-.learn-expanded {
-  position: relative;
-  margin-top: 22px;
-  padding: 27px;
-  background: #ffffff;
-  border: 1px solid #c7d6cd;
-  border-radius: 18px;
-  color: #435c50;
-  line-height: 1.75;
-  animation: learnAppear 0.3s ease;
-}
-
-.learn-expanded[hidden] {
-  display: none;
-}
-
-.learn-expanded h3 {
-  margin: 0 40px 15px 0;
-  font-size: 1.4rem;
-  color: #263e36;
-}
-
-.learn-expanded p {
-  margin-bottom: 12px;
-}
-
-.learn-expanded ul {
-  padding-left: 22px;
-}
-
-.learn-expanded li {
-  margin-bottom: 9px;
-}
-
-.learn-close {
-  position: absolute;
-  top: 15px;
-  right: 17px;
-  border: none;
-  background: #edf3ee;
-  color: #315d50;
-  border-radius: 50%;
-  width: 34px;
-  height: 34px;
-  font-size: 23px;
-  cursor: pointer;
-}
-
-@keyframes learnAppear {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .learn-expanded {
-    animation: none;
-  }
-}
-/* Make PM2.5 popup boxes more compact */
-.learn-expanded .about-note {
-    padding: 12px;
-}
-
-.learn-expanded .about-grid {
-    gap: 10px;
-}
-
-.learn-expanded .about-note h3 {
-    margin-bottom: 5px;
-}
-
-.learn-expanded .about-note p {
-    margin-bottom: 0px;
-}
-
-</style>
-
-<section class="learn-carousel" aria-label="Explore air quality topics">
-
-  <p class="learn-label">EXPLORE THE BASICS</p>
-
-  <div class="learn-header">
-    <h2>Learn more about air quality</h2>
-
-    <div class="learn-arrows">
-      <button type="button" id="learnPrev"
-              aria-label="Previous slide">‹</button>
-      <button type="button" id="learnNext"
-              aria-label="Next slide">›</button>
-    </div>
-  </div>
-
-  
-<div class="learn-track" id="learnTrack">
-
-  <article class="learn-card">
-    <span class="learn-number">01</span>
-    <div class="learn-illustration" aria-hidden="true">🌫️</div>
-    <h3>Understanding PM2.5</h3>
-    <p>
-      PM2.5 refers to airborne particles 2.5 micrometers
-      or smaller. These microscopic pollutants can come
-      from vehicle exhaust, wildfires, industrial processes,
-      and other combustion sources. Because they are so
-      small, they can penetrate deep into your lungs.
-    </p>
-    <button class="learn-more" data-topic="pm25">
-      Read more ↓
-    </button>
-  </article>
-
-  <article class="learn-card">
-    <span class="learn-number">02</span>
-    <div class="learn-illustration" aria-hidden="true">📡</div>
-    <h3>Where Data Comes From</h3>
-    <p>
-      Our dashboard uses air quality measurements from
-      environmental monitoring sensors accessed through
-      CMU CREATE Lab's ESDR platform. These sensors
-      collect readings at different locations and times,
-      helping us visualize local pollution patterns.
-    </p>
-    <button class="learn-more" data-topic="data">
-      Read more ↓
-    </button>
-  </article>
-
-  <article class="learn-card">
-    <span class="learn-number">03</span>
-    <div class="learn-illustration" aria-hidden="true">💻</div>
-    <h3>Behind the Technology</h3>
-    <p>
-      Our application combines interactive maps,
-      environmental data processing, and time-series
-      analysis. Python and Flask handle the backend,
-      Leaflet displays sensor locations, and TimescaleDB
-      stores readings for historical exploration.
-    </p>
-    <button class="learn-more" data-topic="tech">
-      Read more ↓
-    </button>
-  </article>
-
-  <article class="learn-card">
-    <span class="learn-number">04</span>
-    <div class="learn-illustration" aria-hidden="true">🔍</div>
-    <h3>Understanding Limitations</h3>
-    <p>
-      Air pollution varies across neighborhoods, times,
-      and weather conditions. Sensor coverage is uneven,
-      and readings may be missing or delayed. A single
-      measurement does not necessarily represent the
-      conditions of an entire city.
-    </p>
-    <button class="learn-more" data-topic="limits">
-      Read more ↓
-    </button>
-  </article>
-
-  <article class="learn-card">
-    <span class="learn-number">05</span>
-    <div class="learn-illustration" aria-hidden="true">🛡️</div>
-    <h3>Using Data Responsibly</h3>
-    <p>
-      Air quality measurements are useful for identifying
-      pollution trends and planning activities. However,
-      readings should be interpreted alongside official
-      advisories, particularly during wildfires and
-      severe pollution events.
-    </p>
-    <a href="https://www.airnow.gov/"
-       target="_blank" rel="noopener noreferrer">
-      Visit AirNow ↗
-    </a>
-  </article>
-
-  <article class="learn-card">
-    <span class="learn-number">06</span>
-    <div class="learn-illustration" aria-hidden="true">🌎</div>
-    <h3>Explore Further</h3>
-    <p>
-      Air pollution affects communities around the world.
-      Explore how exposure contributes to environmental
-      health challenges, learn about international air
-      quality guidelines, and discover ways to reduce
-      exposure.
-    </p>
-
-    <p>
-    <a href="https://leafletjs.com/"
-       target="_blank" rel="noopener noreferrer">
-      Leaflet ↗ 
-    </a>
-    — Open-source interactive maps, markers, and map controls.
-  </p>
-    <a href="https://www.who.int/health-topics/air-pollution"
-       target="_blank" rel="noopener noreferrer">
-      Explore WHO ↗
-    </a>
-    
-    
-  </article>
-
-</div>
-
-
-  <div class="learn-dots" id="learnDots"
-       aria-label="Carousel navigation"></div>
-       
-<!-- info card that expands on click -->
-<div class="learn-expanded" id="learnExpanded" hidden>
-  <button class="learn-close" id="learnClose"
-          aria-label="Close information">×</button>
-  <div id="learnExpandedContent"></div>
-</div>
-
-
-</section>
-
-<script>
-  const learnTrack = document.getElementById("learnTrack");
-  const learnCards = [...learnTrack.children];
-  const learnDots = document.getElementById("learnDots");
-
-  function cardStep() {
-    return learnCards[1].offsetLeft - learnCards[0].offsetLeft;
-  }
-
-  function currentSlide() {
-    return Math.round(learnTrack.scrollLeft / cardStep());
-  }
-
-  function goToSlide(index) {
-    learnTrack.scrollTo({
-      left: index * cardStep(),
-      behavior: "smooth"
-    });
-  }
-
-  function updateDots() {
-  learnDots.innerHTML = "";
-
-  for (let i = 0; i < 2; i++) {
-    const dot = document.createElement("button");
-
-    dot.className = "learn-dot" +
-      ((learnTrack.scrollLeft >= learnTrack.scrollWidth - learnTrack.clientWidth - 10 ? 1 : 0) === i
-        ? " active" : "");
-
-    dot.setAttribute("aria-label", "Go to page " + (i + 1));
-
-    dot.onclick = () => goToSlide(i * 3);
-
-    learnDots.appendChild(dot);
-  }
-}
-
-document.getElementById("learnPrev").onclick = () => {
-  goToSlide(0);
-};
-
-document.getElementById("learnNext").onclick = () => {
-  goToSlide(3);
-};
-
-  learnTrack.addEventListener("scroll", updateDots);
-  window.addEventListener("resize", updateDots);
-  updateDots();
-  
-const learnInfo = {
-  
-
-pm25: {
-  title: "Understanding PM2.5",
-  text: `
+        <div class="learn-track" id="learnTrack">
+          <article class="learn-card">
+            <span class="learn-number">01</span>
+            <div class="learn-illustration" aria-hidden="true">🌫️</div>
+            <h3>Understanding PM2.5</h3>
+            <p>
+              PM2.5 refers to airborne particles 2.5 micrometers or smaller.
+              These microscopic pollutants can come from vehicle exhaust,
+              wildfires, industrial processes, and other combustion sources.
+              Because they are so small, they can penetrate deep into your
+              lungs.
+            </p>
+            <button class="learn-more" data-topic="pm25">Read more ↓</button>
+          </article>
+
+          <article class="learn-card">
+            <span class="learn-number">02</span>
+            <div class="learn-illustration" aria-hidden="true">📡</div>
+            <h3>Where Data Comes From</h3>
+            <p>
+              Our dashboard uses air quality measurements from environmental
+              monitoring sensors accessed through CMU CREATE Lab's ESDR
+              platform. These sensors collect readings at different locations
+              and times, helping us visualize local pollution patterns.
+            </p>
+            <button class="learn-more" data-topic="data">Read more ↓</button>
+          </article>
+
+          <article class="learn-card">
+            <span class="learn-number">03</span>
+            <div class="learn-illustration" aria-hidden="true">💻</div>
+            <h3>Behind the Technology</h3>
+            <p>
+              Our application combines interactive maps, environmental data
+              processing, and time-series analysis. Python and Flask handle the
+              backend, Leaflet displays sensor locations, and TimescaleDB stores
+              readings for historical exploration.
+            </p>
+            <button class="learn-more" data-topic="tech">Read more ↓</button>
+          </article>
+
+          <article class="learn-card">
+            <span class="learn-number">04</span>
+            <div class="learn-illustration" aria-hidden="true">🔍</div>
+            <h3>Understanding Limitations</h3>
+            <p>
+              Air pollution varies across neighborhoods, times, and weather
+              conditions. Sensor coverage is uneven, and readings may be missing
+              or delayed. A single measurement does not necessarily represent
+              the conditions of an entire city.
+            </p>
+            <button class="learn-more" data-topic="limits">Read more ↓</button>
+          </article>
+
+          <article class="learn-card">
+            <span class="learn-number">05</span>
+            <div class="learn-illustration" aria-hidden="true">🛡️</div>
+            <h3>Using Data Responsibly</h3>
+            <p>
+              Air quality measurements are useful for identifying pollution
+              trends and planning activities. However, readings should be
+              interpreted alongside official advisories, particularly during
+              wildfires and severe pollution events.
+            </p>
+            <a
+              href="https://www.airnow.gov/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Visit AirNow ↗
+            </a>
+          </article>
+
+          <article class="learn-card">
+            <span class="learn-number">06</span>
+            <div class="learn-illustration" aria-hidden="true">🌎</div>
+            <h3>Explore Further</h3>
+            <p>
+              Air pollution affects communities around the world. Explore how
+              exposure contributes to environmental health challenges, learn
+              about international air quality guidelines, and discover ways to
+              reduce exposure.
+            </p>
+
+            <p>
+              <a
+                href="https://leafletjs.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Leaflet ↗
+              </a>
+              — Open-source interactive maps, markers, and map controls.
+            </p>
+            <a
+              href="https://www.who.int/health-topics/air-pollution"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Explore WHO ↗
+            </a>
+          </article>
+        </div>
+
+        <div
+          class="learn-dots"
+          id="learnDots"
+          aria-label="Carousel navigation"
+        ></div>
+
+        <!-- info card that expands on click -->
+        <div class="learn-expanded" id="learnExpanded" hidden>
+          <button
+            class="learn-close"
+            id="learnClose"
+            aria-label="Close information"
+          >
+            ×
+          </button>
+          <div id="learnExpandedContent"></div>
+        </div>
+      </section>
+
+      <script>
+        const learnTrack = document.getElementById("learnTrack");
+        const learnCards = [...learnTrack.children];
+        const learnDots = document.getElementById("learnDots");
+
+        function cardStep() {
+          return learnCards[1].offsetLeft - learnCards[0].offsetLeft;
+        }
+
+        function currentSlide() {
+          return Math.round(learnTrack.scrollLeft / cardStep());
+        }
+
+        function goToSlide(index) {
+          learnTrack.scrollTo({
+            left: index * cardStep(),
+            behavior: "smooth",
+          });
+        }
+
+        function updateDots() {
+          learnDots.innerHTML = "";
+
+          for (let i = 0; i < 2; i++) {
+            const dot = document.createElement("button");
+
+            dot.className =
+              "learn-dot" +
+              ((learnTrack.scrollLeft >=
+              learnTrack.scrollWidth - learnTrack.clientWidth - 10
+                ? 1
+                : 0) === i
+                ? " active"
+                : "");
+
+            dot.setAttribute("aria-label", "Go to page " + (i + 1));
+
+            dot.onclick = () => goToSlide(i * 3);
+
+            learnDots.appendChild(dot);
+          }
+        }
+
+        document.getElementById("learnPrev").onclick = () => {
+          goToSlide(0);
+        };
+
+        document.getElementById("learnNext").onclick = () => {
+          goToSlide(3);
+        };
+
+        learnTrack.addEventListener("scroll", updateDots);
+        window.addEventListener("resize", updateDots);
+        updateDots();
+
+        const learnInfo = {
+          pm25: {
+            title: "Understanding PM2.5",
+            text: `
     <p>
       PM2.5 refers to fine particulate matter with a diameter of 2.5
       micrometers or smaller. These particles can come from sources such as
@@ -1806,15 +1830,12 @@ pm25: {
             U.S. Environmental Protection Agency </a
           >.
         </p>
-  `
-},
+  `,
+          },
 
-
-
-
-  data: {
-    title: "Where Our Data Comes From",
-    text: `
+          data: {
+            title: "Where Our Data Comes From",
+            text: `
       <p><strong>Environmental Sensor Data Repository</strong></p>
       <p>Our project retrieves sensor information and
       particulate matter measurements through ESDR,
@@ -1832,12 +1853,12 @@ pm25: {
 
       <p>Not every sensor reports continuously, and coverage
       differs between locations.</p>
-    `
-  },
+    `,
+          },
 
-  tech: {
-    title: "Behind the Technology",
-    text: `
+          tech: {
+            title: "Behind the Technology",
+            text: `
       <p>Our dashboard combines several technologies:</p>
       <ul>
         <li><strong>HTML, CSS, JavaScript:</strong>
@@ -1855,12 +1876,12 @@ pm25: {
       <p>Continuous aggregates organize measurements
       into hourly and daily summaries, making
       historical data easier to query.</p>
-    `
-  },
+    `,
+          },
 
-  limits: {
-    title: "Understanding Limitations",
-    text: `
+          limits: {
+            title: "Understanding Limitations",
+            text: `
       <p>Environmental data is useful, but understanding
       its limitations is essential.</p>
 
@@ -1883,52 +1904,47 @@ pm25: {
       <p>Use the dashboard to explore trends rather
       than assuming a single reading describes
       everyone's personal exposure.</p>
-    `
-  }
-};
+    `,
+          },
+        };
 
-const expandedPanel =
-  document.getElementById("learnExpanded");
+        const expandedPanel = document.getElementById("learnExpanded");
 
-const expandedContent =
-  document.getElementById("learnExpandedContent");
+        const expandedContent = document.getElementById("learnExpandedContent");
 
-let openTopic = null;
+        let openTopic = null;
 
-document.querySelectorAll(".learn-more").forEach(button => {
-  button.addEventListener("click", () => {
-    const topic = button.dataset.topic;
+        document.querySelectorAll(".learn-more").forEach((button) => {
+          button.addEventListener("click", () => {
+            const topic = button.dataset.topic;
 
-    // Cclicking same button will close the panel
-    if (openTopic === topic) {
-      expandedPanel.hidden = true;
-      openTopic = null;
-      return;
-    }
+            // Cclicking same button will close the panel
+            if (openTopic === topic) {
+              expandedPanel.hidden = true;
+              openTopic = null;
+              return;
+            }
 
-    const info = learnInfo[topic];
+            const info = learnInfo[topic];
 
-    expandedContent.innerHTML =
-      `<h3>${info.title}</h3>${info.text}`;
+            expandedContent.innerHTML = `<h3>${info.title}</h3>${info.text}`;
 
-    expandedPanel.hidden = false;
-    openTopic = topic;
-  });
-});
+            expandedPanel.hidden = false;
+            openTopic = topic;
+          });
+        });
 
-document.getElementById("learnClose").onclick = () => {
-  expandedPanel.hidden = true;
-  openTopic = null;
-};
+        document.getElementById("learnClose").onclick = () => {
+          expandedPanel.hidden = true;
+          openTopic = null;
+        };
+      </script>
 
-</script>
+      <!-- END INFORMATION CAROUSEL -->
 
-<!-- END INFORMATION CAROUSEL -->
-
-
-    <a class="about-back" href="/">
+      <a class="about-back" href="/">
         <span aria-hidden="true">←</span> Back to dashboard
-    </a>
+      </a>
     </main>
 
     <footer>
