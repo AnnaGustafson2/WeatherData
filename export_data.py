@@ -27,7 +27,7 @@ import psycopg
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--days", type=int, default=7, help="how many days back to export")
+    p.add_argument("--days", type=int, default=365, help="how many days back to export")
     p.add_argument("--channel", default="PM2_5")
     p.add_argument("--out", default="data/air_quality.json")
     a = p.parse_args()
@@ -36,6 +36,27 @@ def main():
         sensors = conn.execute(
             "SELECT feed_id, name, latitude, longitude FROM sensors ORDER BY name"
         ).fetchall()
+
+        coverage = conn.execute(
+            """
+            SELECT
+                MIN(day),
+                MAX(day),
+                COUNT(*),
+                COUNT(DISTINCT feed_id)
+            FROM daily_readings
+            WHERE channel = %s
+            """,
+            (a.channel,),
+        ).fetchone()
+
+        print(
+            "Daily data coverage:",
+            f"earliest={coverage[0]}",
+            f"latest={coverage[1]}",
+            f"rows={coverage[2]}",
+            f"sensors={coverage[3]}",
+        )
 
         daily = conn.execute(
             """SELECT day, feed_id, avg_value, min_value, max_value

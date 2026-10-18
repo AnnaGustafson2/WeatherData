@@ -22,6 +22,7 @@ import io
 import os
 import threading
 import time
+import json
 
 import psycopg
 import requests
@@ -135,10 +136,28 @@ def refresh_aggregates(from_ts, to_ts):
         app.logger.warning("aggregate refresh failed: %s", exc)
 
 
+HOT_SECS = 2 * 86400    # chunks newer than this are not compressed yet
+
+
 def load_feeds(conn, feeds, from_ts, to_ts):
-    """Download these feeds from ESDR and replace their rows in the window."""
+    """Download these feeds from ESDR and replace their rows.
+
+    Sensors we've loaded before only get their recent (uncompressed) days replaced.
+    Brand-new sensors get the full window, which has nothing to delete.
+    """
     ids = [f["id"] for f in feeds]
+    # Start of the UTC day that is 2 days back = start of the first uncompressed 1-day chunk.
+    hot_from = max(from_ts, (to_ts - HOT_SECS) // 86400 * 86400)
+
     with conn.cursor() as cur:
+        # Safety net in case an old, still-compressed chunk gets touched.
+        cur.execute("SET timescaledb.max_tuples_decompressed_per_dml_transaction = 0")
+
+        cur.execute(
+            "SELECT feed_id FROM sensors WHERE feed_id = ANY(%s) AND loaded_at IS NOT NULL",
+            (ids,))
+        known = {r[0] for r in cur.fetchall()}
+
         for f in feeds:
             cur.execute(
                 """INSERT INTO sensors (feed_id, name, latitude, longitude, loaded_at)
@@ -146,36 +165,42 @@ def load_feeds(conn, feeds, from_ts, to_ts):
                    ON CONFLICT (feed_id) DO UPDATE
                    SET name = EXCLUDED.name, latitude = EXCLUDED.latitude,
                        longitude = EXCLUDED.longitude, loaded_at = now()""",
-                (f["id"], f["name"], f["latitude"], f["longitude"]),
-            )
-        cur.execute(
-            """DELETE FROM readings WHERE feed_id = ANY(%s)
-               AND time BETWEEN to_timestamp(%s) AND to_timestamp(%s)""",
-            (ids, from_ts, to_ts),
-        )
-        pairs = [f"{i}.{CHANNEL}" for i in ids]
-        for i in range(0, len(pairs), BATCH_SIZE):
-            batch = pairs[i:i + BATCH_SIZE]
-            resp = requests.get(
-                f"{ESDR}/feeds/export/{','.join(batch)}",
-                params={"from": from_ts, "to": to_ts, "format": "csv", "timezone": "UTC"},
-                timeout=600,
-            )
-            resp.raise_for_status()
-            reader = csv.reader(io.StringIO(resp.text))
-            header = next(reader, None)
-            if not header:
-                continue
-            cols = []
-            for h in header[1:]:
-                m = HEADER_RE.search(h)
-                cols.append((int(m.group(1)), m.group(2)) if m else None)
-            with cur.copy("COPY readings (time, feed_id, channel, value) FROM STDIN") as cp:
-                for row in reader:
-                    for col, v in zip(cols, row[1:]):
-                        if col and v != "":
-                            cp.write_row((row[0], col[0], col[1], float(v)))
+                (f["id"], f["name"], f["latitude"], f["longitude"]))
 
+        known_ids = [i for i in ids if i in known]
+        new_ids = [i for i in ids if i not in known]
+        for group, start in ((new_ids, from_ts), (known_ids, hot_from)):
+            if group:
+                _replace_and_download(cur, group, start, to_ts)
+
+
+def _replace_and_download(cur, ids, start_ts, to_ts):
+    cur.execute(
+        """DELETE FROM readings
+           WHERE feed_id = ANY(%s) AND time >= to_timestamp(%s)""",
+        (ids, start_ts))
+    pairs = [f"{i}.{CHANNEL}" for i in ids]
+    for i in range(0, len(pairs), BATCH_SIZE):
+        batch = pairs[i:i + BATCH_SIZE]
+        resp = requests.get(
+            f"{ESDR}/feeds/export/{','.join(batch)}",
+            params={"from": start_ts, "to": to_ts, "format": "csv", "timezone": "UTC"},
+            timeout=600,
+        )
+        resp.raise_for_status()
+        reader = csv.reader(io.StringIO(resp.text))
+        header = next(reader, None)
+        if not header:
+            continue
+        cols = []
+        for h in header[1:]:
+            m = HEADER_RE.search(h)
+            cols.append((int(m.group(1)), m.group(2)) if m else None)
+        with cur.copy("COPY readings (time, feed_id, channel, value) FROM STDIN") as cp:
+            for row in reader:
+                for col, v in zip(cols, row[1:]):
+                    if col and v != "":
+                        cp.write_row((row[0], col[0], col[1], float(v)))
 
 @app.get("/api/region")
 def region():
@@ -243,6 +268,49 @@ def region():
     )
 
 
+@app.post("/api/favorites")
+def sync_favorites():
+    """Save the browser's favorite cities on the server."""
+    data = request.get_json(silent=True) or {}
+    favorites = data.get("favorites")
+
+    if not isinstance(favorites, list):
+        return jsonify(error="Expected a favorites list."), 400
+
+    cleaned = []
+
+    for favorite in favorites:
+        if not isinstance(favorite, dict):
+            return jsonify(error="Invalid favorite entry."), 400
+
+        label = favorite.get("label")
+        lat = favorite.get("lat")
+        lon = favorite.get("lon")
+
+        if not isinstance(label, str) or not label.strip():
+            return jsonify(error="Each favorite needs a label."), 400
+
+        try:
+            lat = float(lat)
+            lon = float(lon)
+        except (TypeError, ValueError):
+            return jsonify(error="Invalid city coordinates."), 400
+
+        if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+            return jsonify(error="Coordinates are out of range."), 400
+
+        cleaned.append({
+            "label": label.strip(),
+            "lat": lat,
+            "lon": lon
+        })
+
+    os.makedirs(os.path.join(HERE, "data"), exist_ok=True)
+    with open(os.path.join(HERE, "data", "saved_cities.json"), "w") as f:
+        json.dump(cleaned, f, indent=2)
+
+    return jsonify(success=True, count=len(cleaned))
+
 @app.get("/api/storage")
 def storage():
     """Table size and how much of it is in the columnstore (Tiger's compression)."""
@@ -278,6 +346,9 @@ def index():
 def regions_file():
     return send_from_directory(HERE, "regions.json")
 
+@app.get("/data/<path:name>")
+def data_file(name):
+    return send_from_directory(os.path.join(HERE, "data"), name)
 
 @app.get("/css/<path:name>")
 def css(name):

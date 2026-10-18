@@ -23,6 +23,41 @@
     const loadBtn = document.getElementById("loadView");
     const setStatus = (msg, isError) => { statusEl.textContent = msg; statusEl.className = isError ? "error" : ""; };
 
+    let historicalData = null;
+
+    async function loadHistoricalData() {
+        try {
+            const response = await fetch("/data/air_quality.json");
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            historicalData = await response.json();
+
+            console.log("Historical data loaded:", {
+                sensors: historicalData.sensors.length,
+                dailyReadings: historicalData.daily.length
+            });
+
+            // Redraw the favorite charts now that the data is available.
+            const favorites = getFavorites();
+
+            favorites.forEach((favorite, index) => {
+                const card = favoritesList.children[index];
+                const chartElement = card?.querySelector(".favorite-chart");
+
+                if (chartElement) {
+                    drawFavoriteChart(chartElement, favorite);
+                }
+            });
+        } catch (error) {
+            console.error("Could not load historical air quality data:", error);
+        }
+    }
+
+    loadHistoricalData();
+    
     const map = L.map("map").setView([38.9, -77.03], 11);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
@@ -59,15 +94,39 @@
         }
     }
 
+    
     function saveFavorites(favorites) {
-        try {
-            localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-            return true;
-        } catch (err) {
-            setStatus("Couldn't save favorites in this browser.", true);
-            return false;
-        }
+    try {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+
+        // Sync the saved cities with the Flask server.
+        fetch("/api/favorites", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ favorites })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(`Synced ${data.count} favorite cities.`);
+        })
+        .catch(err => {
+            console.error("Could not sync favorite cities:", err);
+        });
+
+        return true;
+    } catch (err) {
+        setStatus("Couldn't save favorites in this browser.", true);
+        return false;
     }
+}
+
 
     function isFavorite(p) {
         return getFavorites().some(f =>
@@ -110,8 +169,17 @@
             const heading = document.createElement("h3");
             heading.textContent = favorite.label;
 
+            const content = document.createElement("div");
+            content.className = "favorite-content";
+
             const mapElement = document.createElement("div");
             mapElement.className = "favorite-map";
+
+            const chartElement = document.createElement("div");
+            chartElement.className = "favorite-chart";
+
+            content.append(mapElement, chartElement);
+            drawFavoriteChart(chartElement, favorite);
 
             const actions = document.createElement("div");
             actions.className = "favorite-actions";
@@ -138,7 +206,7 @@
             };
 
             actions.append(openButton, removeButton);
-            card.append(heading, mapElement, actions);
+            card.append(heading, content, actions);
             favoritesList.append(card);
 
             const dLat = 0.15;
@@ -207,6 +275,27 @@
 
         updateSaveButton();
     }
+
+    // Sync existing favorites with the server when the page opens.
+    fetch("/api/favorites", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ favorites: getFavorites() })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(`Synced ${data.count} favorite cities on startup.`);
+    })
+    .catch(err => {
+        console.error("Could not sync favorite cities on startup:", err);
+    });
 
 
     function search(text) {
@@ -498,4 +587,127 @@
             `<text x="${m.l}" y="${H - 6}">${day(x0)}</text>` +
             `<text x="${W - m.r}" y="${H - 6}" text-anchor="end">${day(x1)}</text>` +
             `<text x="${m.l + 4}" y="${m.t + 8}">µg/m³</text></svg>`;
+    }
+
+
+    function drawFavoriteChart(chartElement, favorite) {
+        chartElement.replaceChildren();
+
+        if (!historicalData || !historicalData.daily.length) {
+            chartElement.textContent = "Historical data unavailable.";
+            return;
+        }
+
+        // Find sensors located within this favorite city's area.
+        const dLat = 0.15;
+        const dLon = 0.15 / Math.cos(favorite.lat * Math.PI / 180);
+
+        const citySensors = historicalData.sensors.filter(s =>
+            s.latitude >= favorite.lat - dLat &&
+            s.latitude <= favorite.lat + dLat &&
+            s.longitude >= favorite.lon - dLon &&
+            s.longitude <= favorite.lon + dLon
+        );
+
+        const citySensorIds = new Set(citySensors.map(s => s.feed_id));
+
+        const cityReadings = historicalData.daily.filter(
+            reading => citySensorIds.has(reading.feed_id)
+        );
+
+        console.log(`Historical data for ${favorite.label}:`, {
+            sensorsInCity: citySensors.length,
+            readingsInCity: cityReadings.length,
+            earliestDate: cityReadings.length
+                ? cityReadings.reduce((a, b) => a.day < b.day ? a : b).day
+                : "none",
+            latestDate: cityReadings.length
+                ? cityReadings.reduce((a, b) => a.day > b.day ? a : b).day
+                : "none",
+            totalExportedReadings: historicalData.daily.length
+        });
+
+        // Group sensor readings by day so each day gets one city average.
+        const dailyTotals = new Map();
+
+        for (const reading of historicalData.daily) {
+            if (!citySensorIds.has(reading.feed_id) || reading.avg == null) {
+                continue;
+            }
+
+            const day = reading.day.slice(0, 10);
+
+            if (!dailyTotals.has(day)) {
+                dailyTotals.set(day, { total: 0, count: 0 });
+            }
+
+            const entry = dailyTotals.get(day);
+            entry.total += reading.avg;
+            entry.count++;
+        }
+
+        const data = Array.from(dailyTotals, ([day, values]) => ({
+            day: new Date(day + "T00:00:00Z"),
+            avg: values.total / values.count
+        })).sort((a, b) => a.day - b.day);
+
+        if (data.length === 0) {
+            chartElement.textContent =
+                citySensors.length
+                    ? "No historical readings for this city."
+                    : "No historical sensors found in this city area.";
+            return;
+        }
+
+        const width = Math.max(chartElement.clientWidth, 260);
+        const height = 240;
+        const margin = { top: 15, right: 15, bottom: 35, left: 45 };
+
+        const svg = d3.select(chartElement)
+            .append("svg")
+            .attr("viewBox", `0 0 ${width} ${height}`)
+            .attr("width", "100%")
+            .attr("height", height)
+            .attr("role", "img")
+            .attr("aria-label", `Daily average PM2.5 for ${favorite.label} over the past year`);
+
+        const x = d3.scaleTime()
+            .domain(d3.extent(data, d => d.day))
+            .range([margin.left, width - margin.right]);
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.avg) || 1])
+            .nice()
+            .range([height - margin.bottom, margin.top]);
+
+        svg.append("g")
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%b")));
+
+        svg.append("g")
+            .attr("transform", `translate(${margin.left},0)`)
+            .call(d3.axisLeft(y).ticks(5));
+
+        svg.append("path")
+            .datum(data)
+            .attr("fill", "none")
+            .attr("stroke", "#0D9488")
+            .attr("stroke-width", 2)
+            .attr("d", d3.line()
+                .defined(d => Number.isFinite(d.avg))
+                .x(d => x(d.day))
+                .y(d => y(d.avg))
+            );
+
+        svg.append("text")
+            .attr("x", margin.left)
+            .attr("y", 11)
+            .attr("font-size", 10)
+            .text("PM2.5 (µg/m³)");
+
+        const summary = document.createElement("p");
+        summary.textContent =
+            `Daily averages from ${data.length} days of available readings.`;
+        summary.style.fontSize = "0.8rem";
+        chartElement.append(summary);
     }

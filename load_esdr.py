@@ -58,9 +58,12 @@ WANTED_CHANNELS = ["PM2_5"]
 # ---------------------------------------------------------------
 # 3) WHICH DATES: the last N days (set DAYS = None to use FROM_TS/TO_TS)
 # ---------------------------------------------------------------
-DAYS = 7
-FROM_TS = 1781509280   # used only if DAYS is None (Jun 15, 2026)
-TO_TS = 1782264006     # used only if DAYS is None (Jun 24, 2026)
+# Load the last year of sensor readings.
+DAYS = 365
+
+# Used only if DAYS is None.
+FROM_TS = 1781509280
+TO_TS = 1782264006
 
 # How many feed.channel pairs to ask for in one download (keeps URLs short)
 BATCH_SIZE = 20

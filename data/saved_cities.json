@@ -1,0 +1,22 @@
+[
+  {
+    "label": "New York, New York",
+    "lat": 40.713,
+    "lon": -74.006
+  },
+  {
+    "label": "Washington, District of Columbia",
+    "lat": 38.907,
+    "lon": -77.037
+  },
+  {
+    "label": "Mumbai, India",
+    "lat": 19.073,
+    "lon": 72.883
+  },
+  {
+    "label": "Seattle, Washington",
+    "lat": 47.606,
+    "lon": -122.332
+  }
+]
