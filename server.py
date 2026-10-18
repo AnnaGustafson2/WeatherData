@@ -431,6 +431,10 @@ def history():
     resp.headers["Cache-Control"] = "private, max-age=3600"
     return resp
 
+@app.get("/about.html")
+def about():
+    return send_from_directory(HERE, "about.html")
+
 if __name__ == "__main__":
     setup_db()
     app.run(port=5050, threaded=True)
