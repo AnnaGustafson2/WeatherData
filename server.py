@@ -30,6 +30,7 @@ from flask import Flask, jsonify, request, send_from_directory
 
 from find_sensors import fetch_area, keep          # find sensors in a rectangle
 from load_esdr import ESDR, SCHEMA, HEADER_RE, BATCH_SIZE
+from load_city_history import load_city
 
 CHANNEL = "PM2_5"
 DAYS = 7
@@ -357,6 +358,56 @@ def css(name):
 @app.get("/js/<path:name>")
 def js(name):
     return send_from_directory(os.path.join(HERE, "js"), name)
+
+history_jobs = {}                 # "lat,lon" -> "loading" | "done" | "error: ..."
+history_lock = threading.Lock()   # one city downloads at a time; others wait in line
+jobs_lock = threading.Lock()
+
+
+def start_history_load(lat, lon):
+    key = f"{lat:.2f},{lon:.2f}"
+    with jobs_lock:
+        if key in history_jobs:           # already running, finished, or failed
+            return history_jobs[key]
+        history_jobs[key] = "loading"
+
+    def run():
+        try:
+            with history_lock:
+                load_city(lat, lon)
+            history_jobs[key] = "done"
+        except Exception as exc:
+            app.logger.exception("history load failed")
+            history_jobs[key] = f"error: {exc}"
+
+    threading.Thread(target=run, daemon=True).start()
+    return "loading"
+
+@app.get("/api/history")
+def history():
+    try:
+        s, w, n, e = (float(request.args[k]) for k in ("south", "west", "north", "east"))
+    except (KeyError, ValueError):
+        return jsonify(error="Need south, west, north and east."), 400
+    try:
+        with db() as conn:
+            rows = conn.execute(
+                """SELECT time_bucket('1 day', h.hour) AS day,
+                          avg(h.avg_value), min(h.avg_value), max(h.avg_value),
+                          count(DISTINCT h.feed_id)
+                   FROM history_hourly h JOIN sensors s USING (feed_id)
+                   WHERE s.latitude BETWEEN %s AND %s AND s.longitude BETWEEN %s AND %s
+                     AND h.hour >= now() - interval '365 days'
+                   GROUP BY day ORDER BY day""", (s, n, w, e)).fetchall()
+    except Exception as exc:
+        app.logger.exception("history request failed")
+        return jsonify(error=f"Server error: {exc}"), 500
+    if not rows:
+        status = start_history_load((s + n) / 2, (w + e) / 2)
+        return jsonify(days=[], status=status)
+    return jsonify(status="ready", days=[{"day": d.strftime("%Y-%m-%d"), "avg": round(a, 1),
+                          "min": round(lo, 1), "max": round(hi, 1), "sensors": c}
+                         for d, a, lo, hi, c in rows])
 
 if __name__ == "__main__":
     setup_db()

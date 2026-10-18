@@ -23,40 +23,6 @@
     const loadBtn = document.getElementById("loadView");
     const setStatus = (msg, isError) => { statusEl.textContent = msg; statusEl.className = isError ? "error" : ""; };
 
-    let historicalData = null;
-
-    async function loadHistoricalData() {
-        try {
-            const response = await fetch("/data/air_quality.json");
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            historicalData = await response.json();
-
-            console.log("Historical data loaded:", {
-                sensors: historicalData.sensors.length,
-                dailyReadings: historicalData.daily.length
-            });
-
-            // Redraw the favorite charts now that the data is available.
-            const favorites = getFavorites();
-
-            favorites.forEach((favorite, index) => {
-                const card = favoritesList.children[index];
-                const chartElement = card?.querySelector(".favorite-chart");
-
-                if (chartElement) {
-                    drawFavoriteChart(chartElement, favorite);
-                }
-            });
-        } catch (error) {
-            console.error("Could not load historical air quality data:", error);
-        }
-    }
-
-    loadHistoricalData();
     
     const map = L.map("map").setView([38.9, -77.03], 11);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -590,124 +556,119 @@
     }
 
 
-    function drawFavoriteChart(chartElement, favorite) {
-        chartElement.replaceChildren();
+    let chartId = 0;
 
-        if (!historicalData || !historicalData.daily.length) {
-            chartElement.textContent = "Historical data unavailable.";
-            return;
-        }
+    async function drawFavoriteChart(chartElement, favorite) {
+        chartElement.textContent = "Loading past year…";
 
-        // Find sensors located within this favorite city's area.
+        // Same box as the card's map, so the chart and the dots cover the same area.
         const dLat = 0.15;
         const dLon = 0.15 / Math.cos(favorite.lat * Math.PI / 180);
-
-        const citySensors = historicalData.sensors.filter(s =>
-            s.latitude >= favorite.lat - dLat &&
-            s.latitude <= favorite.lat + dLat &&
-            s.longitude >= favorite.lon - dLon &&
-            s.longitude <= favorite.lon + dLon
-        );
-
-        const citySensorIds = new Set(citySensors.map(s => s.feed_id));
-
-        const cityReadings = historicalData.daily.filter(
-            reading => citySensorIds.has(reading.feed_id)
-        );
-
-        console.log(`Historical data for ${favorite.label}:`, {
-            sensorsInCity: citySensors.length,
-            readingsInCity: cityReadings.length,
-            earliestDate: cityReadings.length
-                ? cityReadings.reduce((a, b) => a.day < b.day ? a : b).day
-                : "none",
-            latestDate: cityReadings.length
-                ? cityReadings.reduce((a, b) => a.day > b.day ? a : b).day
-                : "none",
-            totalExportedReadings: historicalData.daily.length
+        const q = new URLSearchParams({
+            south: favorite.lat - dLat, west: favorite.lon - dLon,
+            north: favorite.lat + dLat, east: favorite.lon + dLon,
         });
 
-        // Group sensor readings by day so each day gets one city average.
-        const dailyTotals = new Map();
-
-        for (const reading of historicalData.daily) {
-            if (!citySensorIds.has(reading.feed_id) || reading.avg == null) {
-                continue;
-            }
-
-            const day = reading.day.slice(0, 10);
-
-            if (!dailyTotals.has(day)) {
-                dailyTotals.set(day, { total: 0, count: 0 });
-            }
-
-            const entry = dailyTotals.get(day);
-            entry.total += reading.avg;
-            entry.count++;
-        }
-
-        const data = Array.from(dailyTotals, ([day, values]) => ({
-            day: new Date(day + "T00:00:00Z"),
-            avg: values.total / values.count
-        })).sort((a, b) => a.day - b.day);
-
-        if (data.length === 0) {
-            chartElement.textContent =
-                citySensors.length
-                    ? "No historical readings for this city."
-                    : "No historical sensors found in this city area.";
+        let days, status;
+        try {
+            const resp = await fetch("/api/history?" + q);
+            const body = await resp.json();
+            if (!resp.ok) throw new Error(body.error || resp.status);
+            days = body.days;
+            status = body.status;
+        } catch (err) {
+            chartElement.textContent = "Could not load history: " + err.message;
             return;
         }
 
-        const width = Math.max(chartElement.clientWidth, 260);
-        const height = 240;
-        const margin = { top: 15, right: 15, bottom: 35, left: 45 };
+        if (!days.length) {
+            if (status === "loading") {
+                chartElement.textContent = "Downloading the past year of history for this city. This takes a few minutes…";
+                setTimeout(() => { if (chartElement.isConnected) drawFavoriteChart(chartElement, favorite); }, 15000);
+            } else if (status === "done") {
+                chartElement.textContent = "No sensors with a year of history were found near this city.";
+            } else {
+                chartElement.textContent = "Could not load history: " + status;
+            }
+            return;
+        }
 
-        const svg = d3.select(chartElement)
-            .append("svg")
+        const data = days.map(d => ({
+            day: new Date(d.day + "T00:00:00Z"),
+            avg: d.avg, min: d.min, max: d.max, sensors: d.sensors,
+        }));
+
+        const width = 600, height = 260;     // fixed viewBox; CSS scales it to the card
+        const margin = { top: 18, right: 15, bottom: 30, left: 45 };
+        const id = "clip" + (++chartId);
+
+        // Scale to the daily averages so one faulty sensor spike can't flatten the line.
+        const yMax = Math.max(d3.max(data, d => d.avg) * 1.15, 12);
+
+        const x = d3.scaleUtc()
+            .domain(d3.extent(data, d => d.day))
+            .range([margin.left, width - margin.right]);
+        const y = d3.scaleLinear().domain([0, yMax]).nice()
+            .range([height - margin.bottom, margin.top]);
+
+        chartElement.replaceChildren();
+        const svg = d3.select(chartElement).append("svg")
             .attr("viewBox", `0 0 ${width} ${height}`)
             .attr("width", "100%")
-            .attr("height", height)
             .attr("role", "img")
             .attr("aria-label", `Daily average PM2.5 for ${favorite.label} over the past year`);
 
-        const x = d3.scaleTime()
-            .domain(d3.extent(data, d => d.day))
-            .range([margin.left, width - margin.right]);
+        svg.append("clipPath").attr("id", id).append("rect")
+            .attr("x", margin.left).attr("y", margin.top)
+            .attr("width", width - margin.left - margin.right)
+            .attr("height", height - margin.top - margin.bottom);
 
-        const y = d3.scaleLinear()
-            .domain([0, d3.max(data, d => d.avg) || 1])
-            .nice()
-            .range([height - margin.bottom, margin.top]);
+        const plot = svg.append("g").attr("clip-path", `url(#${id})`);
 
-        svg.append("g")
-            .attr("transform", `translate(0,${height - margin.bottom})`)
-            .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%b")));
+        // EPA color bands in the background
+        let lower = 0;
+        for (const b of BANDS) {
+            if (lower >= y.domain()[1]) break;
+            const upper = Math.min(b.max, y.domain()[1]);
+            plot.append("rect")
+                .attr("x", margin.left).attr("width", width - margin.left - margin.right)
+                .attr("y", y(upper)).attr("height", y(lower) - y(upper))
+                .attr("fill", b.color).attr("opacity", 0.15)
+                .append("title").text(`${b.label} (${b.range})`);
+            lower = b.max;
+        }
 
-        svg.append("g")
-            .attr("transform", `translate(${margin.left},0)`)
+        // Min-to-max range across sensors (clipped if a sensor spikes)
+        plot.append("path").datum(data)
+            .attr("fill", "#0D9488").attr("opacity", 0.18)
+            .attr("d", d3.area().x(d => x(d.day)).y0(d => y(d.min)).y1(d => y(d.max)));
+
+        // Daily average line
+        plot.append("path").datum(data)
+            .attr("fill", "none").attr("stroke", "#0D9488").attr("stroke-width", 2)
+            .attr("d", d3.line().x(d => x(d.day)).y(d => y(d.avg)));
+
+        // Invisible hover targets with tooltips
+        plot.selectAll("circle").data(data).join("circle")
+            .attr("cx", d => x(d.day)).attr("cy", d => y(d.avg)).attr("r", 4)
+            .attr("fill", "transparent")
+            .append("title").text(d =>
+                `${d3.utcFormat("%b %d, %Y")(d.day)}\nAverage: ${d.avg} µg/m³ (${bandFor(d.avg).label})\n` +
+                `Range: ${d.min}–${d.max}\n${d.sensors} sensors`);
+
+        svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x).ticks(6).tickFormat(d3.utcFormat("%b %Y")));
+        svg.append("g").attr("transform", `translate(${margin.left},0)`)
             .call(d3.axisLeft(y).ticks(5));
+        svg.append("text").attr("x", margin.left).attr("y", 11)
+            .attr("font-size", 10).text("PM2.5 daily average (µg/m³); shaded = min–max across sensors");
 
-        svg.append("path")
-            .datum(data)
-            .attr("fill", "none")
-            .attr("stroke", "#0D9488")
-            .attr("stroke-width", 2)
-            .attr("d", d3.line()
-                .defined(d => Number.isFinite(d.avg))
-                .x(d => x(d.day))
-                .y(d => y(d.avg))
-            );
-
-        svg.append("text")
-            .attr("x", margin.left)
-            .attr("y", 11)
-            .attr("font-size", 10)
-            .text("PM2.5 (µg/m³)");
-
+        const worst = data.reduce((a, b) => (b.avg > a.avg ? b : a));
+        const yearAvg = d3.mean(data, d => d.avg);
         const summary = document.createElement("p");
-        summary.textContent =
-            `Daily averages from ${data.length} days of available readings.`;
         summary.style.fontSize = "0.8rem";
+        summary.textContent =
+            `${data.length} days of data. Year average ${yearAvg.toFixed(1)} µg/m³. ` +
+            `Worst day: ${d3.utcFormat("%b %d")(worst.day)} at ${worst.avg} µg/m³.`;
         chartElement.append(summary);
     }
