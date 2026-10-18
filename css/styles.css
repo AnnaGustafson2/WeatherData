@@ -232,6 +232,23 @@ main {
     background: var(--green-light);
 }
 
+.history-tooltip {
+    position: absolute;
+    z-index: 10;
+    width: max-content;
+    max-width: 190px;
+    padding: 0.7rem 0.85rem;
+    color: #20352a;
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid #d5e2d6;
+    border-radius: 9px;
+    box-shadow: 0 4px 14px rgba(29, 59, 39, 0.14);
+    font-size: 0.78rem;
+    line-height: 1.65;
+    white-space: pre-line;
+    pointer-events: none;
+}
+
 /* =========================
    Email alerts
    ========================= */

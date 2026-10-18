@@ -75,36 +75,50 @@ for (const groups of [CITIES, WORLD])
 // Best matches first: label starts with the text, then a word starts with it, then anywhere.
 // Within the same tier, bigger cities come first. Old names (Bombay, Saigon…) match too.
 
-
 let alertUid = 0;
 const ALERTS_KEY = "airQualityAlertSubs";
 const ALERT_LEVELS = [
-    { value: 35.5,  label: "Unhealthy for sensitive groups (35.5+)",
-      help: "A good choice if you have asthma or heart or lung conditions, or care for children or older adults." },
-    { value: 55.5,  label: "Unhealthy (55.5+)",
-      help: "Air that can affect everyone. Fewer emails, only for worse days." },
-    { value: 125.5, label: "Very unhealthy (125.5+)",
-      help: "Rare. Only for serious events like heavy wildfire smoke." },
+  {
+    value: 35.5,
+    label: "Unhealthy for sensitive groups (35.5+)",
+    help: "A good choice if you have asthma or heart or lung conditions, or care for children or older adults.",
+  },
+  {
+    value: 55.5,
+    label: "Unhealthy (55.5+)",
+    help: "Air that can affect everyone. Fewer emails, only for worse days.",
+  },
+  {
+    value: 125.5,
+    label: "Very unhealthy (125.5+)",
+    help: "Rare. Only for serious events like heavy wildfire smoke.",
+  },
 ];
 
 function getAlertSubs() {
-    try { return JSON.parse(localStorage.getItem(ALERTS_KEY)) || {}; } catch (err) { return {}; }
+  try {
+    return JSON.parse(localStorage.getItem(ALERTS_KEY)) || {};
+  } catch (err) {
+    return {};
+  }
 }
 function setAlertSub(key, sub) {
-    try {
-        const all = getAlertSubs();
-        all[key] = sub;
-        localStorage.setItem(ALERTS_KEY, JSON.stringify(all));
-    } catch (err) { /* remembering is optional */ }
+  try {
+    const all = getAlertSubs();
+    all[key] = sub;
+    localStorage.setItem(ALERTS_KEY, JSON.stringify(all));
+  } catch (err) {
+    /* remembering is optional */
+  }
 }
 
 function alertControls(favorite) {
-    const uid = ++alertUid;
-    const key = `${favorite.lat},${favorite.lon}`;
+  const uid = ++alertUid;
+  const key = `${favorite.lat},${favorite.lon}`;
 
-    const details = document.createElement("details");
-    details.className = "favorite-alerts";
-    details.innerHTML = `
+  const details = document.createElement("details");
+  details.className = "favorite-alerts";
+  details.innerHTML = `
         <summary>
             <span class="alerts-icon" aria-hidden="true">🔔</span>
             <span class="alerts-summary">
@@ -131,65 +145,78 @@ function alertControls(favorite) {
             </form>
         </div>`;
 
-    const $ = sel => details.querySelector(sel);
-    const form = $(".alert-form"), email = $("input"), level = $("select");
-    const help = $(".field-help"), status = $(".alert-status");
-    const submit = $(".alert-submit"), subtitle = $(".alerts-subtitle");
-    const levelLabel = v => (ALERT_LEVELS.find(l => l.value === Number(v)) || {}).label;
+  const $ = (sel) => details.querySelector(sel);
+  const form = $(".alert-form"),
+    email = $("input"),
+    level = $("select");
+  const help = $(".field-help"),
+    status = $(".alert-status");
+  const submit = $(".alert-submit"),
+    subtitle = $(".alerts-subtitle");
+  const levelLabel = (v) =>
+    (ALERT_LEVELS.find((l) => l.value === Number(v)) || {}).label;
 
-    $(".alerts-description").textContent =
-        `We check ${favorite.label} every 30 minutes and email you once when it reaches your level. ` +
-        `You can unsubscribe from any email.`;
+  $(".alerts-description").textContent =
+    `We check ${favorite.label} every 30 minutes and email you once when it reaches your level. ` +
+    `You can unsubscribe from any email.`;
 
-    for (const l of ALERT_LEVELS) level.add(new Option(l.label, l.value));
-    const saved = getAlertSubs()[key];
-    level.value = saved ? saved.threshold : 55.5;
-    email.value = saved ? saved.email : (localStorage.getItem("airQualityAlertEmail") || "");
+  for (const l of ALERT_LEVELS) level.add(new Option(l.label, l.value));
+  const saved = getAlertSubs()[key];
+  level.value = saved ? saved.threshold : 55.5;
+  email.value = saved
+    ? saved.email
+    : localStorage.getItem("airQualityAlertEmail") || "";
 
-    const refresh = () => {
-        help.textContent = (ALERT_LEVELS.find(l => l.value === Number(level.value)) || {}).help;
-        const on = !!getAlertSubs()[key];
-        details.classList.toggle("is-on", on);
-        const s = getAlertSubs()[key];
-        subtitle.textContent = on
-            ? `On: emails ${s.email} at ${levelLabel(s.threshold)}`
-            : "Get an email when the air here becomes unhealthy";
-        submit.textContent = on ? "Update alert" : "Turn on email alerts";
-    };
-    level.addEventListener("change", refresh);
-    refresh();
+  const refresh = () => {
+    help.textContent = (
+      ALERT_LEVELS.find((l) => l.value === Number(level.value)) || {}
+    ).help;
+    const on = !!getAlertSubs()[key];
+    details.classList.toggle("is-on", on);
+    const s = getAlertSubs()[key];
+    subtitle.textContent = on
+      ? `On: emails ${s.email} at ${levelLabel(s.threshold)}`
+      : "Get an email when the air here becomes unhealthy";
+    submit.textContent = on ? "Update alert" : "Turn on email alerts";
+  };
+  level.addEventListener("change", refresh);
+  refresh();
 
-    form.addEventListener("submit", async ev => {
-        ev.preventDefault();
-        submit.disabled = true;
-        status.className = "alert-status";
-        status.textContent = "Saving…";
-        try {
-            const resp = await fetch("/api/alerts", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: email.value, label: favorite.label,
-                                       lat: favorite.lat, lon: favorite.lon,
-                                       threshold: Number(level.value) }),
-            });
-            const body = await resp.json();
-            if (!resp.ok) throw new Error(body.error || resp.status);
-            const addr = email.value.trim();
-            localStorage.setItem("airQualityAlertEmail", addr);
-            setAlertSub(key, { email: addr, threshold: Number(level.value) });
-            status.className = "alert-status success";
-            status.textContent = "Alerts are on. Check your inbox for a confirmation.";
-            refresh();
-        } catch (err) {
-            status.textContent = "Couldn't save: " + err.message;
-        } finally {
-            submit.disabled = false;
-        }
-    });
+  form.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    submit.disabled = true;
+    status.className = "alert-status";
+    status.textContent = "Saving…";
+    try {
+      const resp = await fetch("/api/alerts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.value,
+          label: favorite.label,
+          lat: favorite.lat,
+          lon: favorite.lon,
+          threshold: Number(level.value),
+        }),
+      });
+      const body = await resp.json();
+      if (!resp.ok) throw new Error(body.error || resp.status);
+      const addr = email.value.trim();
+      localStorage.setItem("airQualityAlertEmail", addr);
+      setAlertSub(key, { email: addr, threshold: Number(level.value) });
+      status.className = "alert-status success";
+      status.textContent =
+        "Alerts are on. Check your inbox for a confirmation.";
+      refresh();
+    } catch (err) {
+      status.textContent = "Couldn't save: " + err.message;
+    } finally {
+      submit.disabled = false;
+    }
+  });
 
-    return details;
+  return details;
 }
-
 
 function getFavorites() {
   try {
@@ -850,6 +877,12 @@ async function drawFavoriteChart(chartElement, favorite) {
       "aria-label",
       `Daily average PM2.5 for ${favorite.label} over the past year`,
     );
+  const tooltip = d3
+    .select(chartElement)
+    .append("div")
+    .attr("class", "history-tooltip")
+    .attr("role", "tooltip")
+    .style("display", "none");
 
   svg
     .append("clipPath")
@@ -910,43 +943,50 @@ async function drawFavoriteChart(chartElement, favorite) {
         .y((d) => y(d.avg)),
     );
 
-  // Invisible hover targets with tooltips
+  
+  // Hover targets and custom tooltip
   plot
-    .selectAll("circle")
+    .selectAll(".hover-point")
     .data(data)
     .join("circle")
+    .attr("class", "hover-point")
     .attr("cx", (d) => x(d.day))
     .attr("cy", (d) => y(d.avg))
-    .attr("r", 4)
+    .attr("r", 8)
     .attr("fill", "transparent")
-    .append("title")
-    .text(
-      (d) =>
-        `${d3.utcFormat("%b %d, %Y")(d.day)}\nAverage: ${d.avg} µg/m³ (${bandFor(d.avg).label})\n` +
-        `Range: ${d.min}–${d.max}\n${d.sensors} sensors`,
-    );
+    .style("pointer-events", "all")
+    .on("pointerenter", function (event, d) {
+      d3.select(this)
+        .attr("fill", "#0D9488")
+        .attr("fill-opacity", 0.2)
+        .attr("stroke", "#0D9488")
+        .attr("stroke-width", 1.5);
 
-  svg
-    .append("g")
-    .attr("transform", `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(x).ticks(6).tickFormat(d3.utcFormat("%b %Y")));
-  svg
-    .append("g")
-    .attr("transform", `translate(${margin.left},0)`)
-    .call(d3.axisLeft(y).ticks(5));
-  svg
-    .append("text")
-    .attr("x", margin.left)
-    .attr("y", 11)
-    .attr("font-size", 10)
-    .text("PM2.5 daily average (µg/m³); shaded = min–max across sensors");
+      tooltip.style("display", "block");
+    })
+    .on("pointermove", function (event, d) {
+      const [px, py] = d3.pointer(event, chartElement);
 
-  const worst = data.reduce((a, b) => (b.avg > a.avg ? b : a));
-  const yearAvg = d3.mean(data, (d) => d.avg);
-  const summary = document.createElement("p");
-  summary.style.fontSize = "0.8rem";
-  summary.textContent =
-    `${data.length} days of data. Year average ${yearAvg.toFixed(1)} µg/m³. ` +
-    `Worst day: ${d3.utcFormat("%b %d")(worst.day)} at ${worst.avg} µg/m³.`;
-  chartElement.append(summary);
+      tooltip
+        .style("left", `${Math.max(4, Math.min(
+          px + 12,
+          chartElement.clientWidth - 194
+        ))}px`)
+        .style("top", `${Math.max(4, py - 12)}px`)
+        .text(
+          `${d3.utcFormat("%b %d, %Y")(d.day)}\n` +
+          `Average: ${d.avg.toFixed(1)} µg/m³ (${bandFor(d.avg).label})\n` +
+          `Range: ${d.min.toFixed(1)}–${d.max.toFixed(1)} µg/m³\n` +
+          `${d.sensors} sensor${d.sensors === 1 ? "" : "s"}`
+        );
+    })
+    .on("pointerleave", function () {
+      d3.select(this)
+        .attr("fill", "transparent")
+        .attr("fill-opacity", null)
+        .attr("stroke", null)
+        .attr("stroke-width", null);
+
+      tooltip.style("display", "none");
+    });
 }
