@@ -474,15 +474,355 @@
     </head>
 
     <main class="about-main">
-      <section class="about-intro">
-        <p class="eyebrow">About the project</p>
-        <h2>Understand the air around you.</h2>
-        <p>
-          Explore air quality monitoring data, discover nearby PM2.5 sensors,
-          and examine historical trends across locations. This project makes
-          environmental data easier to explore and understand.
-        </p>
-      </section>
+      
+<!-- ANIMATED ABOUT PAGE HERO -->
+
+<style>
+  /* Move the page content closer to the header */
+  .about-main {
+    padding-top: 0.75rem !important;
+  }
+
+  .air-hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    min-height: 390px;
+    margin: 3rem 0 2rem;
+    padding: clamp(2.5rem, 6vw, 4.5rem);
+
+    background: linear-gradient(
+      135deg,
+      #e5f0e8 0%,
+      #e3f0ed 55%,
+      #f1f8f6 100%
+    );
+
+    border: 2px solid #719c8b;
+    border-radius: 20px;
+
+    display: flex;
+    align-items: center;
+  }
+
+  .air-hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 740px;
+    animation: heroFadeIn 0.9s ease-out both;
+  }
+
+  .air-hero-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+
+    color: #367c69;
+    font-size: 0.8rem;
+    font-weight: 750;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .air-hero-label::before {
+    content: "";
+    width: 22px;
+    height: 2px;
+    background: #367c69;
+  }
+
+  .air-hero h1 {
+    color: #233d32;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    line-height: 1.14;
+    letter-spacing: -0.045em;
+    margin: 0 0 20px;
+    max-width: 700px;
+  }
+
+  .air-hero-description {
+    color: #506557;
+    font-size: 1.08rem;
+    line-height: 1.8;
+    max-width: 570px;
+    margin: 0;
+  }
+
+  /* Wind animation layer */
+  .air-hero-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .wind-line {
+    fill: none;
+    stroke: #78b5a0;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 45 30;
+    opacity: 0.60;
+
+    animation: movingWind 9s linear infinite;
+  }
+
+  .wind-line.second {
+    stroke: #569981;
+    stroke-width: 2.5;
+    opacity: 0.45;
+    animation-duration: 13s;
+    animation-direction: reverse;
+  }
+
+  .wind-line.third {
+    stroke: #91c5b0;
+    stroke-width: 3.5;
+    opacity: 0.55;
+    animation-duration: 7s;
+  }
+
+  .wind-line.fourth {
+    stroke: #a2cdc0;
+    stroke-width: 2;
+    opacity: 0.6;
+    animation-duration: 17s;
+  }
+
+  /* Additional motion for the entire wind paths */
+  .wind-group {
+    animation: windDrift 7s ease-in-out infinite alternate;
+  }
+
+  .wind-group.lower {
+    animation-duration: 11s;
+    animation-delay: -3s;
+  }
+
+  .air-particle {
+    fill: #397f69;
+    opacity: 0.65;
+  }
+
+  .air-particle.light {
+    fill: #7cb9a5;
+    opacity: 0.75;
+  }
+
+  .air-particle.dark {
+    fill: #2c6e59;
+    opacity: 0.6;
+  }
+
+  /* Tiny particle pulsing effect */
+  .particle-pulse {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: particlePulse 3s ease-in-out infinite alternate;
+  }
+
+  .particle-pulse.slow {
+    animation-duration: 5s;
+  }
+
+  .particle-pulse.fast {
+    animation-duration: 2s;
+  }
+
+  @keyframes movingWind {
+    from {
+      stroke-dashoffset: 0;
+    }
+    to {
+      stroke-dashoffset: -300;
+    }
+  }
+
+  @keyframes windDrift {
+    from {
+      transform: translateX(-25px) translateY(-8px);
+    }
+    to {
+      transform: translateX(30px) translateY(12px);
+    }
+  }
+
+  @keyframes particlePulse {
+    from {
+      transform: scale(0.65);
+      opacity: 0.35;
+    }
+    to {
+      transform: scale(1.3);
+      opacity: 0.85;
+    }
+  }
+
+  @keyframes heroFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 650px) {
+    .about-main {
+      padding-top: 0.5rem !important;
+    }
+
+    .air-hero {
+      min-height: 340px;
+      padding: 2rem 1.5rem;
+    }
+
+    .air-hero-description {
+      font-size: 0.96rem;
+    }
+
+    .air-hero-art {
+      opacity: 0.55;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .air-hero-content,
+    .wind-line,
+    .wind-group,
+    .particle-pulse {
+      animation: none !important;
+    }
+  }
+</style>
+
+<section class="air-hero" aria-labelledby="airHeroTitle">
+
+  <svg class="air-hero-art"
+       viewBox="0 0 1000 400"
+       preserveAspectRatio="xMidYMid slice"
+       aria-hidden="true">
+
+    <!-- MOVING WIND LINES -->
+
+    <g class="wind-group">
+
+      <path class="wind-line"
+        d="M -150 100
+           C 100 -50, 350 220, 600 100
+           S 950 -20, 1200 100" />
+
+      <path class="wind-line second"
+        d="M -150 165
+           C 150 20, 360 305, 650 165
+           S 950 40, 1200 165" />
+
+    </g>
+
+    <g class="wind-group lower">
+
+      <path class="wind-line third"
+        d="M -150 265
+           C 130 120, 370 390, 650 265
+           S 960 135, 1200 265" />
+
+      <path class="wind-line fourth"
+        d="M -150 345
+           C 140 190, 380 480, 650 345
+           S 950 220, 1200 345" />
+
+    </g>
+
+    <!-- FLOATING PARTICLES AT DIFFERENT SPEEDS -->
+
+    <!-- Particle 1: slow -->
+    <circle class="air-particle" r="5">
+      <animateMotion dur="19s"
+                     repeatCount="indefinite"
+                     path="M -40 80 C 250 10, 500 180, 1050 60"/>
+    </circle>
+
+    <!-- Particle 2: faster -->
+    <circle class="air-particle light" r="3.5">
+      <animateMotion dur="9s"
+                     repeatCount="indefinite"
+                     path="M -30 180 C 260 80, 700 270, 1050 155"/>
+    </circle>
+
+    <!-- Particle 3: medium -->
+    <circle class="air-particle dark" r="6">
+      <animateMotion dur="14s"
+                     repeatCount="indefinite"
+                     path="M -50 290 C 240 130, 650 390, 1050 260"/>
+    </circle>
+
+    <!-- Particle 4: very slow -->
+    <circle class="air-particle light" r="4">
+      <animateMotion dur="25s"
+                     repeatCount="indefinite"
+                     path="M -30 350 C 350 245, 650 470, 1050 330"/>
+    </circle>
+
+    <!-- Particle 5: fast -->
+    <circle class="air-particle" r="3">
+      <animateMotion dur="7s"
+                     repeatCount="indefinite"
+                     path="M -40 120 C 300 40, 650 230, 1050 115"/>
+    </circle>
+
+    <!-- Particle 6 -->
+    <circle class="air-particle dark" r="4.5">
+      <animateMotion dur="16s"
+                     repeatCount="indefinite"
+                     path="M -30 220 C 300 105, 680 345, 1050 200"/>
+    </circle>
+
+    <!-- Particle 7 -->
+    <circle class="air-particle light" r="2.5">
+      <animateMotion dur="11s"
+                     repeatCount="indefinite"
+                     path="M -40 55 C 270 -40, 710 140, 1050 45"/>
+    </circle>
+
+    <!-- Particle 8 -->
+    <circle class="air-particle" r="5">
+      <animateMotion dur="22s"
+                     repeatCount="indefinite"
+                     path="M -35 370 C 280 260, 740 440, 1050 355"/>
+    </circle>
+
+  </svg>
+
+  <!-- HERO CONTENT -->
+
+  <div class="air-hero-content">
+
+    <div class="air-hero-label">
+      THE AIR YOU SHARE
+    </div>
+
+    <h1 id="airHeroTitle">
+      You can't always see it.<br>
+      But you're breathing it.
+    </h1>
+
+    <p class="air-hero-description">
+      Discover the invisible particles in our atmosphere,
+      how they affect our health, and what we can do
+      to protect ourselves.
+    </p>
+
+  </div>
+
+</section>
+
+<!-- END ANIMATED HERO -->
+
 
       <section class="about-section" id="overview">
         <h2>What is this dashboard?</h2>
@@ -539,6 +879,473 @@
           >.
         </p>
       </section>
+
+<!-- ============================= -->
+<!-- INTERACTIVE AIR QUALITY GUIDE -->
+<!-- ============================= -->
+
+<!-- #style n shiiii  -->
+<style>
+  .aqi-guide {
+    margin-top: 3.5rem;
+  }
+
+  .aqi-widget {
+    background: #ffffff;
+    border: 1px solid var(--border, #dce5ea);
+    border-radius: 20px;
+    padding: 25px;
+    margin-top: 22px;
+    box-shadow: 0 6px 24px rgba(30, 60, 50, 0.045);
+  }
+
+  .aqi-widget h3 {
+    margin: 0 0 6px;
+    font-size: 1.35rem;
+  }
+
+  .aqi-subtitle {
+    color: var(--muted, #5e6c77);
+    font-size: 0.92rem;
+    margin-bottom: 23px;
+  }
+
+  .aqi-bar {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+
+  .aqi-option {
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--text, #23313d);
+    min-width: 0;
+    text-align: center;
+  }
+
+  .aqi-color {
+    display: block;
+    height: 24px;
+    background: var(--level-color);
+    border-radius: 5px;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .aqi-option:hover .aqi-color {
+    transform: translateY(-3px);
+  }
+
+  .aqi-option[aria-pressed="true"] .aqi-color {
+    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--level-color);
+    transform: translateY(-2px);
+  }
+
+  .aqi-range {
+    display: block;
+    margin-top: 9px;
+    font-size: 0.75rem;
+    font-weight: 650;
+  }
+
+  .aqi-details {
+    background: #fde8e8;
+    border-radius: 16px;
+    padding: 24px;
+    transition: background-color 0.25s;
+  }
+
+  .aqi-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 18px;
+  }
+
+  .aqi-heading-group {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .aqi-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: #d44d50;
+    color: white;
+    font-size: 26px;
+  }
+
+  .aqi-category {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+    margin: 0 0 3px;
+  }
+
+  .aqi-headline {
+    font-size: clamp(1.25rem, 3vw, 1.65rem);
+    font-weight: 750;
+    color: #1f2937;
+    line-height: 1.25;
+    margin: 0;
+  }
+
+  .aqi-number {
+    font-size: 0.9rem;
+    font-weight: 750;
+    color: #d44d50;
+    white-space: nowrap;
+  }
+
+  .aqi-description {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #334155;
+    margin-bottom: 18px;
+  }
+
+  .aqi-advice {
+    border-top: 1px solid rgba(60, 70, 75, 0.15);
+    padding-top: 17px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .aqi-check {
+    color: #d44d50;
+    font-size: 22px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+
+  .aqi-advice p {
+    margin: 0;
+    color: #334155;
+    line-height: 1.6;
+    font-size: 0.92rem;
+    font-weight: 550;
+  }
+
+  .aqi-footnote {
+    color: var(--muted, #5e6c77);
+    font-size: 0.79rem;
+    line-height: 1.6;
+    margin-top: 17px;
+  }
+
+  @media (max-width: 600px) {
+    .aqi-widget {
+      padding: 16px;
+    }
+
+    .aqi-bar {
+      gap: 4px;
+    }
+
+    .aqi-color {
+      height: 19px;
+    }
+
+    .aqi-range {
+      font-size: 0.62rem;
+    }
+
+    .aqi-details {
+      padding: 17px;
+    }
+
+    .aqi-details-header {
+      align-items: flex-start;
+    }
+
+    .aqi-icon {
+      width: 42px;
+      height: 42px;
+      font-size: 20px;
+    }
+
+    .aqi-number {
+      font-size: 0.72rem;
+    }
+  }
+</style>
+
+<section class="about-section aqi-guide" id="aqi-guide">
+
+  <p class="eyebrow">Your air, your health</p>
+  <h2>What does your air quality mean?</h2>
+
+  <p>
+    Air pollution isn't always visible, but it can affect
+    your health. The Air Quality Index (AQI) translates
+    pollution measurements into six categories to help
+    you understand when precautions are needed.
+  </p>
+
+  <div class="aqi-widget">
+
+    <h3>How healthy is your air?</h3>
+    <p class="aqi-subtitle">
+      Select an air quality level to learn what it
+      means for your health.
+    </p>
+
+    <!-- aqi scale with pretty colors! clickabe ofc -->
+    <div class="aqi-bar" role="group" aria-label="Air quality levels">
+
+      <button class="aqi-option"
+              style="--level-color: #28986a"
+              data-level="0"
+              aria-pressed="false">
+        <span class="aqi-color"></span>
+        <span class="aqi-range">0–50</span>
+      </button>
+
+      <button class="aqi-option"
+              style="--level-color: #b48a15"
+              data-level="1"
+              aria-pressed="false">
+        <span class="aqi-color"></span>
+        <span class="aqi-range">51–100</span>
+      </button>
+
+      <button class="aqi-option"
+              style="--level-color: #e58030"
+              data-level="2"
+              aria-pressed="false">
+        <span class="aqi-color"></span>
+        <span class="aqi-range">101–150</span>
+      </button>
+
+      <button class="aqi-option"
+              style="--level-color: #d44d50"
+              data-level="3"
+              aria-pressed="true">
+        <span class="aqi-color"></span>
+        <span class="aqi-range">151–200</span>
+      </button>
+
+      <button class="aqi-option"
+              style="--level-color: #8757ad"
+              data-level="4"
+              aria-pressed="false">
+        <span class="aqi-color"></span>
+        <span class="aqi-range">201–300</span>
+      </button>
+
+      <button class="aqi-option"
+              style="--level-color: #81324d"
+              data-level="5"
+              aria-pressed="false">
+        <span class="aqi-color"></span>
+        <span class="aqi-range">301+</span>
+      </button>
+
+    </div>
+
+    <!-- changing da card -->
+    <div class="aqi-details" id="aqiDetails"
+         aria-live="polite">
+
+      <div class="aqi-details-header">
+
+        <div class="aqi-heading-group">
+          <div class="aqi-icon" id="aqiIcon"
+               aria-hidden="true">
+            ⚠
+          </div>
+
+          <div>
+            <p class="aqi-category" id="aqiCategory">
+              Unhealthy
+            </p>
+            <h3 class="aqi-headline" id="aqiHeadline">
+              Your lungs need a break.
+            </h3>
+          </div>
+        </div>
+
+        <span class="aqi-number" id="aqiNumber">
+          AQI 151–200
+        </span>
+
+      </div>
+
+      <p class="aqi-description" id="aqiDescription">
+        Health effects become more likely for everyone,
+        especially people with heart or lung conditions.
+      </p>
+
+      <div class="aqi-advice">
+        <span class="aqi-check" id="aqiCheck"
+              aria-hidden="true">✓</span>
+        <p id="aqiAdvice">
+          Reduce prolonged outdoor exertion. Sensitive groups
+          should avoid prolonged or strenuous outdoor activity.
+        </p>
+      </div>
+
+    </div>
+
+    <p class="aqi-footnote">
+      These categories use the U.S. Air Quality Index.
+      AQI is not the same as a raw PM2.5 concentration
+      measured in µg/m³. Recommendations are general;
+      check local official guidance for current conditions.
+      <a href="https://www.airnow.gov/aqi/aqi-basics/"
+         target="_blank" rel="noopener noreferrer">
+        Learn more at AirNow ↗
+      </a>
+    </p>
+
+  </div>
+</section>
+
+<script>
+  // style and info abt air on the little card, taken from the US EPA AQI guide which is totes awesome btw
+  const aqiLevels = [
+    {
+      category: "Good",
+      range: "0–50",
+      headline: "Breathe easy.",
+      description:
+        "Air quality is satisfactory, and air pollution poses little or no risk.",
+      advice:
+        "Enjoy your usual outdoor activities. It's a great day for a walk, run, or picnic!",
+      color: "#28986a",
+      background: "#e5f5eb",
+      icon: "☀"
+    },
+    {
+      category: "Moderate",
+      range: "51–100",
+      headline: "Mostly clear skies.",
+      description:
+        "Air quality is acceptable for most people, although some unusually sensitive individuals may experience effects.",
+      advice:
+        "Most people can continue normal activities. If you're unusually sensitive to air pollution, watch for symptoms.",
+      color: "#b48a15",
+      background: "#fff5ce",
+      icon: "☁"
+    },
+    {
+      category: "Unhealthy for Sensitive Groups",
+      range: "101–150",
+      headline: "Take it a little easier.",
+      description:
+        "Sensitive groups, including children, older adults, and people with heart or lung conditions, face greater risks.",
+      advice:
+        "Sensitive groups should reduce prolonged or strenuous outdoor activity. Others can generally continue normal activities.",
+      color: "#e58030",
+      background: "#fff0df",
+      icon: "♡"
+    },
+    {
+      category: "Unhealthy",
+      range: "151–200",
+      headline: "Your lungs need a break.",
+      description:
+        "Health effects become more likely for everyone, especially people with heart or lung conditions.",
+      advice:
+        "Reduce prolonged outdoor exertion. Sensitive groups should avoid prolonged or strenuous outdoor activity.",
+      color: "#d44d50",
+      background: "#fde8e8",
+      icon: "⚠"
+    },
+    {
+      category: "Very Unhealthy",
+      range: "201–300",
+      headline: "Keep your exposure low.",
+      description:
+        "This level represents a health alert. The risk of health effects is increased for everyone.",
+      advice:
+        "Avoid strenuous outdoor activities and spend more time in cleaner indoor air. Consider using a HEPA air cleaner.",
+      color: "#8757ad",
+      background: "#f3e9fc",
+      icon: "⌂"
+    },
+    {
+      category: "Hazardous",
+      range: "301+",
+      headline: "The air is dangerous.",
+      description:
+        "Emergency-level pollution conditions can affect everyone, including healthy individuals.",
+      advice:
+        "Avoid outdoor physical activity and stay in filtered indoor air. For heavy particle pollution, if you must go outside, a properly fitted N95 respirator can help reduce exposure.",
+      color: "#81324d",
+      background: "#f8e6ec",
+      icon: "!"
+    }
+  ];
+
+  // updates when color clicked
+  const aqiButtons =
+    document.querySelectorAll(".aqi-option");
+
+  function selectAqiLevel(index) {
+    const level = aqiLevels[index];
+
+    document.getElementById("aqiCategory").textContent =
+      level.category;
+
+    document.getElementById("aqiNumber").textContent =
+      "AQI " + level.range;
+
+    document.getElementById("aqiHeadline").textContent =
+      level.headline;
+
+    document.getElementById("aqiDescription").textContent =
+      level.description;
+
+    document.getElementById("aqiAdvice").textContent =
+      level.advice;
+
+    document.getElementById("aqiIcon").textContent =
+      level.icon;
+
+    document.getElementById("aqiDetails").style.backgroundColor =
+      level.background;
+
+    document.getElementById("aqiIcon").style.backgroundColor =
+      level.color;
+
+    document.getElementById("aqiNumber").style.color =
+      level.color;
+
+    document.getElementById("aqiCheck").style.color =
+      level.color;
+
+    aqiButtons.forEach((button, buttonIndex) => {
+      button.setAttribute(
+        "aria-pressed",
+        String(buttonIndex === index)
+      );
+    });
+  }
+
+  aqiButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      selectAqiLevel(Number(button.dataset.level));
+    });
+  });
+
+  //we can set our default to anything its just set to 1 aka safe for now
+  selectAqiLevel(1);
+</script>
+
+<!-- END OF INTERACTIVE AIR QUALITY GUIDE -->
 
       <section class="about-section" id="data">
         <h2>Where does the data come from?</h2>
